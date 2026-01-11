@@ -42,7 +42,6 @@ findMismatch1(book,verse,lvl1,wrd1,lvl2,wrd2,wrdpart) ; compare two branches
 displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart) ; Display trope-syntax mismatch
  ; Inputs: bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart
  ; Output: 4-row monospaced text display, all RTL
- N posuk,wrds,wrdcnt,i,j,k,level,endWord,partIdx
  N posuk,wrds,wrdcnt,wordWidths,wordStartPos,i,j,k,level,endWord,partIdx
  N startWord,nodeType,part,trope,minWord,maxWord,prefix,revTropes,revSyn
  S bookName=$S(bookn=1:"Genesis",bookn=2:"Exodus",1:"Book "_bookn) ; Map bookn to name
@@ -63,11 +62,11 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart) ; Display 
  ; Row 1: Book, chapter, verse, full verse
  W !,prefix,wrds
  ; Prepare tropes and syntax for the range
-
  F i=maxWord:-1:minWord D
  . ; Tropes
  . S revTropes(i)=$$getTaam(.posuk,i)
-
+ . I i=wrd10 S revTropes(i)=" ((" _ revTropes(i)
+ . I i=wrd1 S revTropes(i)=revTropes(i) _ " ))"
  . F level=1:1:4 I $D(posuk("lvls",level,i)) D ; section ends at this word
  .. S startWord=posuk("lvls",level,i) ; initial word beginning the section
  .. I startWord<i,revTropes(i)="" S revTropes(i)="..."
@@ -81,15 +80,14 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart) ; Display 
  .. S nodeType=$P(node,"^",3),part=$P(node,"^",4)
  .. I partIdx=wrdpart S nodeType="*"_"nodeType" ; Highlight wrdpart
  .. S revSyn(i)=revSyn(i)_$S(revSyn(i)="":"",1:",")_nodeType
+ . I i=wrd20 S revSyn(i)=" ((" _ revSyn(i)
+ . I i=wrd2 S revSyn(i)=revSyn(i) _ " ))"
  . F level=1:1:3 S endWord="" F  S endWord=$O(posuk("fslvls",level,endWord)) Q:endWord=""  D
  .. F partIdx=1:1 Q:'$D(posuk("fslvls",level,endWord,partIdx))  D
  ... S node=posuk("fslvls",level,endWord,partIdx)
  ... S startWord=$P(node,"^",1),nodeType=$P(node,"^",3)
  ... I startWord<=i,endWord>=i D
- .... I startWord<i,revSyn(i)="" S revSyn(i)="..."
- .... I level=lvl2,wrd20=endWord,wrd2=startWord S revSyn(i)=revSyn(i)_" ((...))"
- .... E  I startWord=i S revSyn(i)=nodeType_" ))"
- .... E  I i=endWord S revSyn(i)=" (("
+ .... S revSyn(i)=revSyn(i)_$S(revSyn(i)="":"",1:",")_nodeType
  ; Row 2: Words
  W !
  W $J("",$L(prefix))

@@ -62,7 +62,7 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart) ; Display 
  ; Row 1: Book, chapter, verse, full verse
  W !,prefix,wrds
  ; Prepare tropes and syntax for the range
- F i=maxWord:-1:minWord D
+ F i=minWord:1:maxWord D
  . ; Tropes
  . S revTropes(i)=$$getTaam(.posuk,i)
  . I i=wrd10 S revTropes(i)=" ((" _ revTropes(i)
@@ -75,8 +75,8 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart) ; Display 
  .. E  I i=startWord S revTropes(i)=" (("
  . ; Syntax
  . S revSyn(i)=""
- . F partIdx=1:1 Q:'$D(posuk("fslvls",4,i,partIdx))  D
- .. S node=posuk("fslvls",4,i,partIdx)
+ . F partIdx=1:1 Q:'$D(posuk("fslvls",lvl2,i,partIdx))  D
+ .. S node=posuk("fslvls",lvl2,i,partIdx)
  .. S nodeType=$P(node,"^",3),part=$P(node,"^",4)
  .. I partIdx=wrdpart S nodeType="*"_"nodeType" ; Highlight wrdpart
  .. S revSyn(i)=revSyn(i)_$S(revSyn(i)="":"",1:",")_nodeType
@@ -91,7 +91,7 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart) ; Display 
  ; Row 2: Words
  W !
  W $J("",$L(prefix))
- F i=maxWord:-1:minWord D
+ F i=minWord:1:maxWord D
  . S pos = $L(prefix) + wordStartPos(i)
  . S word=posuk(i),width=$L(word)
  . W $J("",pos - width),$J(word,width)," "
@@ -118,3 +118,11 @@ getTaam(posuk,i) ; for ith word
  s unicode="" f  s unicode=$o(posuk(i,"ta'am",unicode)) q:unicode=""  d
  . s taam1=chars(unicode,"name"),taam=taam_$s(taam="":"",1:" ")_taam1
  q taam
+  ;
+add(x)	;
+	n glb1
+	s glb1="^UTILITY("_$j_",""out"")"
+	s (cnt,@glb1@(0))=$g(@glb1@(0))+1
+	s @glb1@(cnt)=x
+	q
+	;
