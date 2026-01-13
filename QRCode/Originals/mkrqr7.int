@@ -1,15 +1,26 @@
 mkrqr7	; mkr 07/31/2025; kriah (קריה), trope (טעמים), and syntax - various queries
 	;
-	; if desired, our queries can format them for output to csp pages, using
-	;  lkupout^mkrqr2 and array2json^mkrqr2
 	;
 findMismatch ; Find mismatches between trope (lvls) and syntax (fslvls) trees in ^torah2
- n chars,NONLETTERS
- s U="^"
+ n bookName,chars,glb0,glb1,NONLETTERS,sefer,sefarim
+ ;d writehdr("Find Mismatches")
+ ;
+ s U="^",P="|"
+	s glb0="^torah2",glb1="^TMP("_$j_",""out"")"
+	k @glb1
  m chars=^mkr4("chars")
+ m sefarim=^mkr4("sefer") ; details about various books of Tanach
  s NONLETTERS="" f i=1425:1:1469,1471:1:1479 s NONLETTERS=NONLETTERS_$c(i) ; all characters that aren't aleph - tav
- f bookn=1:1:35 d
+ ;f bookn=1:1:35 d
+ f bookn=1 d  ; DEBUGGING
+	. m sefer=sefarim(bookn)
+	. s sefer1=$$zconvert^mkrutl(sefer,"O","UTF8")
+ . S bookName=sefarim(bookn,"eng") ; Map bookn to name
+	. d writehdr("Find mismatches "_sefer1)
  . f versen=1:1 q:'$d(^torah2(bookn,versen))  d findMismatchVerse(bookn,versen)
+ . d writeend2^mkrqr1,writeend^mkrqr1
+ . d writeout^mkrqr1(bookn,glb1,"findMismatch"_bookName,"QRCode\Originals\out","html") ; output to file
+	. k @glb1 ;
  q
  ;
 findMismatchVerse(bookn,versen) ; Find mismatches for a specific verse
@@ -42,87 +53,160 @@ findMismatch1(book,verse,lvl1,wrd1,lvl2,wrd2,wrdpart) ; compare two branches
 displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart) ; Display trope-syntax mismatch
  ; Inputs: bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart
  ; Output: 4-row monospaced text display, all RTL
- N posuk,wrds,wrdcnt,wordWidths,wordStartPos,i,j,k,level,endWord,partIdx
+ N posuk,wrds,wrdcnt,wordWidths,i,j,k,level,endWord,partIdx
  N startWord,nodeType,part,trope,minWord,maxWord,prefix,revTropes,revSyn
- S bookName=$S(bookn=1:"Genesis",bookn=2:"Exodus",1:"Book "_bookn) ; Map bookn to name
+ ;
  M posuk=^torah2(bookn,versen) ; all verse info
  ; Get verse data
  S wrds=posuk,wrdcnt=posuk(0),chap=posuk("chap")
  S prefix=bookName_" "_chap_":"_versen_": "
- ; Compute word widths and positions
- F i=1:1:wrdcnt D
- . S word=$tr($G(posuk(i)),NONLETTERS),wordWidths(i)=$L(word) ; remove vowels and trope.
- . S wordStartPos(i)=$S(i=1:1,1:wordStartPos(i-1)+wordWidths(i-1)+1) ; adding a space
  ; Determine mismatch range
  S minWord=$S(wrd10<wrd20:wrd10,1:wrd20),maxWord=$S(wrd1>wrd2:wrd1,1:wrd2)
  I minWord>wrd1 S minWord=wrd1
  I minWord>wrd2 S minWord=wrd2
  I maxWord<wrd10 S maxWord=wrd10
  I maxWord<wrd20 S maxWord=wrd20
- ; Row 1: Book, chapter, verse, full verse
- W !,prefix,wrds
- ; Prepare tropes and syntax for the range
- F i=maxWord:-1:minWord D
- . ; Tropes
+ . S word=$tr($G(posuk(i)),NONLETTERS),wordWidths(i)=$L(word) ; remove vowels and trope.
+ ; Prepare tropes and syntax for the range,
+ ;  adding brackets for the sections and sub-sections
+ k revTropes
+ F i=minWord:1:maxWord D
+ . ; Tropes - build list
  . S revTropes(i)=$$getTaam(.posuk,i)
- . I i=wrd10 S revTropes(i)=" ((" _ revTropes(i)
- . I i=wrd1 S revTropes(i)=revTropes(i) _ " ))"
- . F level=1:1:4 I $D(posuk("lvls",level,i)) D ; section ends at this word
- .. S startWord=posuk("lvls",level,i) ; initial word beginning the section
- .. I startWord<i,revTropes(i)="" S revTropes(i)="..."
- .. I level=lvl1,wrd10=i,wrd1=startWord S revTropes(i)=revTropes(i)_" ((...))"
- .. E  I startWord=i S revTropes(i)=revTropes(i)_" ))"
- .. E  I i=startWord S revTropes(i)=" (("
- . ; Syntax
- . S revSyn(i)=""
- . F partIdx=1:1 Q:'$D(posuk("fslvls",4,i,partIdx))  D
- .. S node=posuk("fslvls",4,i,partIdx)
- .. S nodeType=$P(node,"^",3),part=$P(node,"^",4)
- .. I partIdx=wrdpart S nodeType="*"_"nodeType" ; Highlight wrdpart
- .. S revSyn(i)=revSyn(i)_$S(revSyn(i)="":"",1:",")_nodeType
- . I i=wrd20 S revSyn(i)=" ((" _ revSyn(i)
- . I i=wrd2 S revSyn(i)=revSyn(i) _ " ))"
- . F level=1:1:3 S endWord="" F  S endWord=$O(posuk("fslvls",level,endWord)) Q:endWord=""  D
- .. F partIdx=1:1 Q:'$D(posuk("fslvls",level,endWord,partIdx))  D
- ... S node=posuk("fslvls",level,endWord,partIdx)
- ... S startWord=$P(node,"^",1),nodeType=$P(node,"^",3)
- ... I startWord<=i,endWord>=i D
- .... S revSyn(i)=revSyn(i)_$S(revSyn(i)="":"",1:",")_nodeType
- ; Row 2: Words
- W !
- W $J("",$L(prefix))
+ F level=4:-1:1 D ; sections begin and end, enclose in ( )
+ . s endWord="" f  s endWord=$o(posuk("lvls",level,endWord)) q:endWord=""  D
+ .. S startWord=posuk("lvls",level,endWord) ; initial word beginning the section
+ ..; these might be inside or outside our range
+ .. Q:startWord>maxWord  Q:endWord<minWord  ; totally off the radar
+ .. I startWord<minWord Q:((level+1)<lvl1)  d  ; add parens on first and last word of section
+ ... d aTP(.revTropes,minWord,"R",1)
+ .. E  d aTP(.revTropes,startWord,"R")
+ .. I endWord>maxWord Q:((level+1)<lvl1)  d
+ ... d aTP(.revTropes,maxWord,"L",1)
+ .. E  d aTP(.revTropes,endWord,"L")
+ ;
+ ; Syntax
+ k revSyn
+ ; Syntax - build list
+ F level=4:-1:1 D ; sections begin and end, enclose in ( )
+ . s endWord="" f  s endWord=$o(posuk("fslvls",level,endWord)) q:endWord=""  D
+ .. Q:endWord<minWord  ; totally off the radar
+ .. s endPart="" f  s endPart=$o(posuk("fslvls",level,endWord,endPart)) q:endPart=""  D
+ ... S node=posuk("fslvls",level,endWord,endPart)
+ ... S startWord=$p(node,U),startPart=$p(node,U,2) ; initial word,part beginning the section
+ ... Q:startWord>maxWord   ; totally off the radar
+ ... S syntax=$P(node,U,3),txt=$P(node,U,4),leafSyntax=$p(node,U,5)
+ ... I syntax="" D  Q  ; don't add parens just for a leaf alone
+ ....; for leaf, startWord=endWord,startPart=endPart
+ .... i leafSyntax'="" D
+ ..... i startWord'=endWord W !,"error startWord "_startWord_", endword "_endWord q
+ ..... i startPart'=endPart W !,"error startPart "_startPart_", endword "_endPart q
+ ..... d aSP(.revSyn,startWord,startPart,0,,leafSyntax)
+ ... Q:((level+1)<lvl1)  ; don't need to look that far out
+ ... ; add parens on first and last word of section, and syntax
+ ... I startWord<minWord d  ; add ...
+ .... d aSP(.revSyn,minWord,,"R",1)
+ ... E  d aSP(.revSyn,startWord,startPart,"R")
+ ... I endWord>maxWord d
+ .... d aSP(.revSyn,maxWord,,"L",1,syntax)
+ ... E  d aSP(.revSyn,endWord,endPart,"L",,syntax)
+ ;
+ ; Output
+ d add("<div>")
+ ; Row 1: Book, chapter, verse, full verse
+ d add($$zconvert^mkrutl(prefix_wrds,"O","UTF8"))
+ ;
+ d add("<table border=' 1px solid black; '>")
+ d add("<tr>")
+ ; Row 2: Words - RTL
+ s row2=""
  F i=maxWord:-1:minWord D
- . S pos = $L(prefix) + wordStartPos(i)
- . S word=posuk(i),width=$L(word)
- . W $J("",pos - width),$J(word,width)," "
- W !
- ; Row 3: Tropes
- W $J("",$L(prefix))
- F i=maxWord:-1:minWord D
- . S pos = $L(prefix) + wordStartPos(i)
- . S trope=$G(revTropes(i))
- . W $J("",pos -1),trope
- W !
+ . S word=posuk(i) ; number of characters
+ . S row2 = row2 _ "<td>"_word_"</td>" ; middle of word should be 20 characters over
+ d add($$zconvert^mkrutl(row2,"O","UTF8"))
+ d add("</tr>")
+ ;
+ d add("<tr>")
+ ; Row 3: Trope - English
+ s row3="" ; build string RTL
+ F i=minWord:1:maxWord D
+ . S trope=revTropes(i),tropeL=$G(revTropes(i,"L")),tropeR=$G(revTropes(i,"R"))
+ . S row3 = "<td>" _ tropeL _ trope _ tropeR _ "</td>" _ row3
+ d add(row3)
+ d add("</tr>")
+ ;
+ d add("<tr>")
  ; Row 4: Syntax
- W $J("",$L(prefix))
- F i=maxWord:-1:minWord D
- . S pos = $L(prefix) + wordStartPos(i)
- . S syn=$G(revSyn(i))
- . W $J("",pos -1),syn
- W !
+ zw revSyn
+ F i=maxWord:-1:minWord D  ; leaf syntax
+ . d add("<td>")
+ . S j="" F  S j=$o(revSyn(i,j),-1) q:j=""  d  ; word-part
+ .. S partTxt=""
+ .. F k="L",0,"R" i $d(revSyn(i,j,k)) d  ; leaf or syntax branch ends
+ ... S class=$s(k=0:"syntax-part",k="L":"branch-end",k="R":"branch-start",1:"")
+ ... F cnt=$g(revSyn(i,j,k,0)):-1:1 d  ; maybe several on one part, esp. ('s
+ .... S txt=$G(revSyn(i,j,k,cnt))
+ .... S spanTxt="<span class='"_class_"'> "_txt_" </span>"
+ .... S partTxt=partTxt_spanTxt
+ .. d add(partTxt)
+ . d add("</td>")
+ d add("</tr>")
+ ;
+ d add("")
+ d add("</table>")
+ d add("</div>")
+ d add("<br/>")
+ ;
  Q
  ;
 getTaam(posuk,i) ; for ith word
  n taam,unicode
  s taam=""
  s unicode="" f  s unicode=$o(posuk(i,"ta'am",unicode)) q:unicode=""  d
+ . q:unicode="mult"  ; multiple ta'amim on one word flag
+ . q:unicode="missing"
  . s taam1=chars(unicode,"name"),taam=taam_$s(taam="":"",1:" ")_taam1
  q taam
+  ;
+aTP(revtropes,wordIdx,direction,dots)	; add left/right paren. revtropes array in/out by reference
+ n dottxt,txt1
+ s dottxt="" i $g(dots) s dottxt="..."
+ i direction="L" s revtropes(wordIdx,"L") = "("_dottxt_$g(revtropes(wordIdx,"L"))
+ i direction="R" s revtropes(wordIdx,"R") = $g(revtropes(wordIdx,"R"))_dottxt_")"
+ q
+ ;
+aSP(revtropes,wordIdx,partIdx,direction,dots,syntax)	; add left/right paren., and syntax just next to left paren (on last word in section)
+ ; leaves and syntax are (somewhat) independent: leaves never need ( ), syntax always does.
+ n cnt,dottxt,txt1
+ s partIdx=$g(partIdx) S:partIdx="" partIdx=0 ; use 0 if not specified to make it the last one
+ s syntax=$g(syntax)
+ s dottxt="" i $g(dots) s dottxt="..."
+ i direction=0 s (cnt,revSyn(wordIdx,partIdx,0,0))=$g(revSyn(wordIdx,partIdx,0,0))+1,revSyn(wordIdx,partIdx,0,cnt)=leafSyntax
+ i direction="L" s (cnt,revSyn(wordIdx,partIdx,"L",0)) = $g(revSyn(wordIdx,partIdx,"L",0))+1,revSyn(wordIdx,partIdx,"L",cnt)="("_dottxt_syntax
+ i direction="R" s (cnt,revSyn(wordIdx,partIdx,"R",0))=$g(revSyn(wordIdx,partIdx,"R",0))+1,revSyn(wordIdx,partIdx,"R",cnt) = dottxt_")"
+ q
  ;
 add(x)	;
-	n glb1
-	s glb1="^UTILITY("_$j_",""out"")"
+	n cnt,glb1
+	s glb1="^TMP("_$j_",""out"")"
 	s (cnt,@glb1@(0))=$g(@glb1@(0))+1
 	s @glb1@(cnt)=x
 	q
 	;
+writehdr(name)	; sidra if there is one
+	n j,x,y
+	s sidra=$g(sidra)
+	; some html header stuff
+	f j=1:1 s x=$t(leadtxt+j) q:x[";;;"  s y=$p(x,";",3,99) d add(y)
+	d add("<title>"_name_"</title>")
+	d add("</head>")
+	d add("<body>")
+	q
+leadtxt	;
+	;;<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+	;;<HTML LANG=ENG>
+	;;<HEAD>
+	;;<META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=utf-8">
+	;;<LINK REL="stylesheet" HREF="includes\c.css" TYPE="text/css">
+	;;;
+	q
