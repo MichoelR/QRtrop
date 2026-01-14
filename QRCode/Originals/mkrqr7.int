@@ -3,7 +3,7 @@ mkrqr7	; mkr 07/31/2025; kriah (קריה), trope (טעמים), and syntax - vari
 	;
 findMismatch ; Find mismatches between trope (lvls) and syntax (fslvls) trees in ^torah2
  n bookName,chars,glb0,glb1,NONLETTERS,sefer,sefarim
- ;d writehdr("Find Mismatches")
+ d writehdr("Find Mismatches")
  ;
  s U="^",P="|",sp=" "
 	s glb0="^torah2",glb1="^TMP("_$j_",""out"")"
@@ -122,7 +122,7 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trope-sy
  . s x1=$p(txt,sp,1,wrd20-1),x2=$p(txt,sp,wrd20,wrd10-1),x3=$p(txt,sp,wrd10,wrd2),x4=$p(txt,sp,wrd2+1,wrd1),x5=$p(txt,sp,wrd1+1,999)
  . s txt=x1_"<span class='verse-syntax'> "_x2_"</span><span class='verse-trope-syntax'> "_x3_"</span><span class='verse-trope'> "_x4_"</span> "_x5
  . 
- d add($$zconvert^mkrutl(prefix_txt,"O","UTF8"))
+ d add($zconvert^mkrutl(prefix_txt,"O","UTF8"))
  ; Row 1a: mismatch info
  s txt="<div class='mismatch_data'>Mismatch: Trope branch words "_wrd10_" - "_wrd1_", "
  s txt=txt_"<span class='verse-trope'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
@@ -130,7 +130,7 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trope-sy
  s txt=txt_"<span class='verse-syntax'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</div>"
  d add($$zconvert^mkrutl(txt,"O","UTF8"))
  ;
- d add("<table border=' 1px solid black; '>")
+ d add("<table>")
  d add("<tr>")
  ; Row 2: Words - RTL
  s row2=""
@@ -145,7 +145,7 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trope-sy
  s row3="" ; build string RTL
  F i=minWord:1:maxWord D
  . S trope=revTropes(i),tropeL=$G(revTropes(i,"L")),tropeR=$G(revTropes(i,"R"))
- . S row3 = "<td>" _ tropeL _ trope _ tropeR _ "</td>" _ row3
+ . S row3 = "<td><span class='branch-end'>"_tropeL_"</span><span class='verse-trope'>"_trope_"</span><span class='branch-start'>"_tropeR_"</span></td>" _ row3
  d add(row3)
  d add("</tr>")
  ;
@@ -230,3 +230,14 @@ leadtxt	;
 	;;<!--<LINK REL="stylesheet" HREF="includes\c.css" TYPE="text/css">-->
 	;;;
 	q
+  
+;  
+includeFile(filename) ;  
+	n file,line  
+	s file=##class(%File).%New(filename)  
+	i 'file.Open("R") w "Error opening file "_filename q  
+	f  d  q:file.AtEnd  
+	. s line=file.ReadLine()  
+	. d add(line)  
+	d file.Close()  
+	q 

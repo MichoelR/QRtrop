@@ -1,0 +1,83 @@
+
+uni	char	hex	lvl	name	rank	type	utf8
+1425	֑	0591	1	ETNAHTA		trope	d6 91
+1426	֒	0592	2	SEGOL	2	trope	d6 92
+1427	֓	0593	2	SHALSHELET	2	trope	d6 93
+1428	֔	0594	2	ZAQEF QATAN	1	trope	d6 94
+1429	֕	0595	2	ZAQEF GADOL	1	trope	d6 95
+1430	֖	0596	2	TIPEHA	0	trope	d6 96
+1431	֗	0597	3	REVIA	1	trope	d6 97
+1432	֘	0598	3	ZARQA	0	trope	d6 98
+1433	֙	0599	3	PASHTA	0	trope	d6 99
+1434	֚	059A	3	YETIV	0	trope	d6 9a
+1435	֛	059B	3	TEVIR	0	trope	d6 9b
+1436	֜	059C	4	GERESH	0	trope	d6 9c
+1437	֝	059D	4	GERESH MUQDAM	0	trope	d6 9d
+1438	֞	059E	4	GERSHAYIM	0	trope	d6 9e
+1439	֟	059F	4	QARNEY PARA	2	trope	d6 9f
+1440	֠	05A0	4	TELISHA GEDOLA	1	trope	d6 a0
+1441	֡	05A1	4	PAZER	2	trope	d6 a1
+1442	֢	05A2		ATNAH HAFUKH		trope	d6 a2
+1443	֣	05A3		MUNAH		trope	d6 a3
+1444	֤	05A4		MAHAPAKH		trope	d6 a4
+1445	֥	05A5		MERKHA		trope	d6 a5
+1446	֦	05A6		MERKHA KEFULA		trope	d6 a6
+1447	֧	05A7		DARGA		trope	d6 a7
+1448	֨	05A8		QADMA		trope	d6 a8
+1449	֩	05A9		TELISHA QETANA		trope	d6 a9
+1450	֪	05AA		YERAH BEN YOMO		trope	d6 aa
+1451	֫	05AB		OLE		trope	d6 ab
+1452	֬	05AC		ILUY		trope	d6 ac
+1453	֭	05AD		DEHI		trope	d6 ad
+1454	֮	05AE		ZINOR		trope	d6 ae
+1456	ְ	05B0		SHEVA		vowel	d6 b0
+1457	ֱ	05B1		HATAF SEGOL		vowel	d6 b1
+1458	ֲ	05B2		HATAF PATAH		vowel	d6 b2
+1459	ֳ	05B3		HATAF QAMATS		vowel	d6 b3
+1460	ִ	05B4		HIRIQ		vowel	d6 b4
+1461	ֵ	05B5		TSERE		vowel	d6 b5
+1462	ֶ	05B6		SEGOL		vowel	d6 b6
+1463	ַ	05B7		PATAH		vowel	d6 b7
+1464	ָ	05B8		QAMATS		vowel	d6 b8
+1465	ֹ	05B9		HOLAM		vowel	d6 b9
+1466	ֺ	05BA		HOLAM HASER FOR VAV		vowel	d6 ba
+1467	ֻ	05BB		QUBUTS		vowel	d6 bb
+1468	ּ	05BC		DAGESH OR MAPIQ		misc	d6 bc
+1469	ֽ	05BD		METEG		misc	d6 bd
+1470	־	05BE		MAQAF		misc	d6 be
+1471	ֿ	05BF		RAFE		misc	d6 bf
+1472	׀	05C0		PASEQ		trope	d7 80
+1473	ׁ	05C1		SHIN DOT		misc	d7 81
+1474	ׂ	05C2		SIN DOT		misc	d7 82
+1475	׃	05C3	1	SOF PASUQ		trope	d7 83
+1476	ׄ	05C4		UPPER DOT		misc	d7 84
+1477	ׅ	05C5		LOWER DOT		misc	d7 85
+1478	׆	05C6		NUN HAFUKHA		misc	d7 86
+1479	ׇ	05C7		QAMATS QATAN		vowel	d7 87
+1488	א	05D0		ALEF		letter	d7 90
+1489	ב	05D1		BET		letter	d7 91
+1490	ג	05D2		GIMEL		letter	d7 92
+1491	ד	05D3		DALET		letter	d7 93
+1492	ה	05D4		HE		letter	d7 94
+1493	ו	05D5		VAV		letter	d7 95
+1494	ז	05D6		ZAYIN		letter	d7 96
+1495	ח	05D7		HET		letter	d7 97
+1496	ט	05D8		TET		letter	d7 98
+1497	י	05D9		YOD		letter	d7 99
+1498	ך	05DA		FINAL KAF		letter	d7 9a
+1499	כ	05DB		KAF		letter	d7 9b
+1500	ל	05DC		LAMED		letter	d7 9c
+1501	ם	05DD		FINAL MEM		letter	d7 9d
+1502	מ	05DE		MEM		letter	d7 9e
+1503	ן	05DF		FINAL NUN		letter	d7 9f
+1504	נ	05E0		NUN		letter	d7 a0
+1505	ס	05E1		SAMEKH		letter	d7 a1
+1506	ע	05E2		AYIN		letter	d7 a2
+1507	ף	05E3		FINAL PE		letter	d7 a3
+1508	פ	05E4		PE		letter	d7 a4
+1509	ץ	05E5		FINAL TSADI		letter	d7 a5
+1510	צ	05E6		TSADI		letter	d7 a6
+1511	ק	05E7		QOF		letter	d7 a7
+1512	ר	05E8		RESH		letter	d7 a8
+1513	ש	05E9		SHIN		letter	d7 a9
+1514	ת	05EA		TAV		letter	d7 aa
