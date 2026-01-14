@@ -5,7 +5,7 @@ findMismatch ; Find mismatches between trope (lvls) and syntax (fslvls) trees in
  n bookName,chars,glb0,glb1,NONLETTERS,sefer,sefarim
  ;d writehdr("Find Mismatches")
  ;
- s U="^",P="|"
+ s U="^",P="|",sp=" "
 	s glb0="^torah2",glb1="^TMP("_$j_",""out"")"
 	k @glb1
  m chars=^mkr4("chars")
@@ -28,9 +28,9 @@ findMismatchVerse(bookn,versen) ; Find mismatches for a specific verse
  m lvls=^torah2(bookn,versen,"lvls") ; trope
  m fslvls=^torah2(bookn,versen,"fslvls") ; syntax
  ; Compare each trope branch to each syntax branch
- s lvl1="" f  s lvl1=$o(lvls(lvl1)) q:lvl1=""  d
+ s lvl1="" f  s lvl1=$o(lvls(lvl1)) q:lvl1=""  d  ; trope
  . s wrd1="" f  s wrd1=$o(lvls(lvl1,wrd1)) q:wrd1=""  d
- .. s lvl2="" f  s lvl2=$o(fslvls(lvl2)) q:lvl2=""  d
+ .. s lvl2="" f  s lvl2=$o(fslvls(lvl2)) q:lvl2=""  d  ; syntax
  ... s wrd2="" f  s wrd2=$o(fslvls(lvl2,wrd2)) q:wrd2=""  d
  .... s wrdpart="" f  s wrdpart=$o(fslvls(lvl2,wrd2,wrdpart)) q:wrdpart=""  d
  ..... d findMismatch1(bookn,versen,lvl1,wrd1,lvl2,wrd2,wrdpart)
@@ -47,10 +47,10 @@ findMismatch1(book,verse,lvl1,wrd1,lvl2,wrd2,wrdpart) ; compare two branches
  ; or two are equal and the other two are on different sides
  i prod=0,wrd2=wrd10,((wrd1-wrd2)*(wrd20-wrd2))<0 s foundf=2
  i prod=0,wrd20=wrd1,((wrd10-wrd1)*(wrd2-wrd1))<0 s foundf=3
- i foundf d displayMismatch(book,verse,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart)
+ i foundf d displayMismatch(book,verse,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2)
  q
  ;
-displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart) ; Display trope-syntax mismatch
+displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trope-syntax mismatch
  ; Inputs: bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart
  ; Output: 4-row monospaced text display, all RTL
  N posuk,wrds,wrdcnt,wordWidths,i,j,k,level,endWord,partIdx
@@ -58,8 +58,8 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart) ; Display 
  ;
  M posuk=^torah2(bookn,versen) ; all verse info
  ; Get verse data
- S wrds=posuk,wrdcnt=posuk(0),chap=posuk("chap")
- S prefix=bookName_" "_chap_":"_versen_": "
+ S wrds=posuk,wrdcnt=posuk(0),chap=posuk("chap"),verse=posuk("verse")
+ S prefix=bookName_" "_chap_":"_verse_" "
  ; Determine mismatch range
  S minWord=$S(wrd10<wrd20:wrd10,1:wrd20),maxWord=$S(wrd1>wrd2:wrd1,1:wrd2)
  I minWord>wrd1 S minWord=wrd1
@@ -114,7 +114,21 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart) ; Display 
  ; Output
  d add("<div>")
  ; Row 1: Book, chapter, verse, full verse
- d add($$zconvert^mkrutl(prefix_wrds,"O","UTF8"))
+ s txt=wrds
+ i wrd10<wrd20 d
+ . s x1=$p(txt,sp,1,wrd10-1),x2=$p(txt,sp,wrd10,wrd20-1),x3=$p(txt,sp,wrd20,wrd1),x4=$p(txt,sp,wrd1+1,wrd2),x5=$p(txt,sp,wrd2+1,999)
+ . s txt=x1_"<span class='verse-trope'> "_x2_"</span><span class='verse-trope-syntax'> "_x3_"</span><span class='verse-syntax'> "_x4_"</span> "_x5
+ e  d  ; wrd20<wrd10
+ . s x1=$p(txt,sp,1,wrd20-1),x2=$p(txt,sp,wrd20,wrd10-1),x3=$p(txt,sp,wrd10,wrd2),x4=$p(txt,sp,wrd2+1,wrd1),x5=$p(txt,sp,wrd1+1,999)
+ . s txt=x1_"<span class='verse-syntax'> "_x2_"</span><span class='verse-trope-syntax'> "_x3_"</span><span class='verse-trope'> "_x4_"</span> "_x5
+ . 
+ d add($$zconvert^mkrutl(prefix_txt,"O","UTF8"))
+ ; Row 1a: mismatch info
+ s txt="<div class='mismatch_data'>Mismatch: Trope branch words "_wrd10_" - "_wrd1_", "
+ s txt=txt_"<span class='verse-trope'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
+ s txt=txt_". Syntax branch words "_wrd20_" - "_wrd2_", "
+ s txt=txt_"<span class='verse-syntax'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</div>"
+ d add($$zconvert^mkrutl(txt,"O","UTF8"))
  ;
  d add("<table border=' 1px solid black; '>")
  d add("<tr>")
@@ -137,7 +151,7 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart) ; Display 
  ;
  d add("<tr>")
  ; Row 4: Syntax
- zw revSyn
+ ;zw revSyn
  F i=maxWord:-1:minWord D  ; leaf syntax
  . d add("<td>")
  . S j="" F  S j=$o(revSyn(i,j),-1) q:j=""  d  ; word-part
@@ -178,7 +192,8 @@ aTP(revtropes,wordIdx,direction,dots)	; add left/right paren. revtropes array in
 aSP(revtropes,wordIdx,partIdx,direction,dots,syntax)	; add left/right paren., and syntax just next to left paren (on last word in section)
  ; leaves and syntax are (somewhat) independent: leaves never need ( ), syntax always does.
  n cnt,dottxt,txt1
- s partIdx=$g(partIdx) S:partIdx="" partIdx=0 ; use 0 if not specified to make it the last one
+ s partIdx=$g(partIdx) 
+ i partIdx="" s partIdx=$s(direction="L":1000,direction="R":0,1:"") ; use 0 or 1000 if not specified to make it the last one
  s syntax=$g(syntax)
  s dottxt="" i $g(dots) s dottxt="..."
  i direction=0 s (cnt,revSyn(wordIdx,partIdx,0,0))=$g(revSyn(wordIdx,partIdx,0,0))+1,revSyn(wordIdx,partIdx,0,cnt)=leafSyntax
@@ -199,6 +214,11 @@ writehdr(name)	; sidra if there is one
 	; some html header stuff
 	f j=1:1 s x=$t(leadtxt+j) q:x[";;;"  s y=$p(x,";",3,99) d add(y)
 	d add("<title>"_name_"</title>")
+	d add("<style>")
+	d add("  .verse-trope-syntax {font-style: italic; font-weight: bold;}")
+	d add("  .verse-trope {font-style: italic; }")
+	d add("  .verse-syntax {font-weight: bold; }")
+	d add("</style>")
 	d add("</head>")
 	d add("<body>")
 	q
@@ -207,6 +227,6 @@ leadtxt	;
 	;;<HTML LANG=ENG>
 	;;<HEAD>
 	;;<META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=utf-8">
-	;;<LINK REL="stylesheet" HREF="includes\c.css" TYPE="text/css">
+	;;<!--<LINK REL="stylesheet" HREF="includes\c.css" TYPE="text/css">-->
 	;;;
 	q
