@@ -1,38 +1,37 @@
-mkrqr7_updated	; mkr 07/31/2025; kriah (קריה), trope (טעמים), and syntax - various queries
+mkrqr7	; mkr 07/31/2025; kriah (קריה), trope (טעמים), and syntax - various queries
 	;
 	;
 findMismatch ; Find mismatches between trope (lvls) and syntax (fslvls) trees in ^torah2
  n bookName,chars,glb0,glb1,NONLETTERS,sefer,sefarim
- ;d writehdr("Find Mismatches")
  ;
  s U="^",P="|",sp=" "
-	s glb0="^torah2",glb1="^TMP("_$j_",""out"")"
-	k @glb1
-	d includeFile("QRCode/Originals/out/includes/header.html")
+ s glb0="^torah2",glb1="^TMP("_$j_",""out"")"
+ k @glb1
  ;
  m chars=^mkr4("chars")
  m sefarim=^mkr4("sefer") ; details about various books of Tanach
  s NONLETTERS="" f i=1425:1:1469,1471:1:1479 s NONLETTERS=NONLETTERS_$c(i) ; all characters that aren't aleph - tav
  ;f bookn=1:1:35 d
  f bookn=1 d  ; DEBUGGING
- . s sefer=sefarim(bookn),bookName=$p(sefer,U,2),sefer1=$p(sefer,U,1)
- . ;d writehdr("Find mismatches "_sefer1)
+ . m sefer=sefarim(bookn)
+ . s sefer1=$$zconvert^mkrutl(sefer,"O","UTF8")
+ . S bookName=sefarim(bookn,"eng") ; Map bookn to name
+ . d includeFile("header.html")
  . f versen=1:1 q:'$d(^torah2(bookn,versen))  d findMismatchVerse(bookn,versen)
- . d writeend2^mkrqr1,writeend^mkrqr1
- . d includeFile("QRCode/Originals/out/includes/footer.html")
+ . d includeFile("footer.html")
  . d writeout^mkrqr1(bookn,glb1,"findMismatch"_bookName,"QRCode\Originals\out","html") ; output to file
+ . k @glb1
  q
  ;
 findMismatchVerse(bookn,versen) ; Find mismatches for a specific verse
- n lvls,fslvls,lvl1,wrd1,lvl2,wrd2,wrdpart
+ n lvls,fslvls,lvl1,wrd1,lvl2,wrd2,wrdpart,posuk
  ;
+ M posuk=^torah2(bookn,versen) ; all verse info
  ; Get lvls (trope levels)
- s lvls=^torah2(bookn,versen,"lvls")
- m posuk("lvls")=lvls
+ m lvls=posuk("lvls")
  ;
  ; Get fslvls (syntax levels)
- s fslvls=^torah2(bookn,versen,"fslvls")
- m posuk("fslvls")=fslvls
+ m fslvls=posuk("fslvls")
  ;
  s lvl1="" f  s lvl1=$o(lvls(lvl1)) q:lvl1=""  d  ; trope
  . s wrd1="" f  s wrd1=$o(lvls(lvl1,wrd1)) q:wrd1=""  d
@@ -59,7 +58,7 @@ findMismatch1(book,verse,lvl1,wrd1,lvl2,wrd2,wrdpart) ; compare two branches
 displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trope-syntax mismatch
  ; Inputs: bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart
  ; Output: 4-row monospaced text display, all RTL
- N posuk,wrds,wrdcnt,wordWidths,i,j,k,level,endWord,partIdx
+ N posuk,wrds,wrdcnt,i,j,k,level,endWord,partIdx
  N startWord,nodeType,part,trope,minWord,maxWord,prefix,revTropes,revSyn
  ;
  M posuk=^torah2(bookn,versen) ; all verse info
@@ -72,16 +71,12 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trope-sy
  I maxWord<wrd10 S maxWord=wrd10
  I maxWord<wrd20 S maxWord=wrd20
  ;
- ; Build wordWidths
- F i=1:1:wrdcnt D
- . S word=$tr($G(posuk(i)),NONLETTERS),wordWidths(i)=$L(word) ; remove vowels and trope.
- ;
  ; Prepare tropes and syntax for the range,
  ;  adding brackets for the sections and sub-sections
  ;
  F i=minWord:1:maxWord D
  . ; Tropes - build list
- . S trope=getTaam(posuk,i)
+ . S trope=$$getTaam(.posuk,i)
  . S revTropes(i)=trope
  ;
  F level=4:-1:1 D ; sections begin and end, enclose in ( )
@@ -124,12 +119,12 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trope-sy
  s txt=wrds
  i wrd10<wrd20 d
  . s x1=$p(txt,sp,1,wrd10-1),x2=$p(txt,sp,wrd10,wrd20-1),x3=$p(txt,sp,wrd20,wrd1),x4=$p(txt,sp,wrd1+1,wrd2),x5=$p(txt,sp,wrd2+1,999)
- . s prefix=$g(x1)_"<span class='verse-trope'>"_$g(x2)_"</span><span class='verse-trope-syntax'>"_$g(x3)_"</span><span class='verse-syntax'>"_$g(x4)_"</span>"_$g(x5)
+ . s prefix=$g(x1)_" <span class='verse-trope'> "_$g(x2)_"</span><span class='verse-trope-syntax'> "_$g(x3)_"</span><span class='verse-syntax'> "_$g(x4)_"</span> "_$g(x5)
  e  d  ; wrd20<wrd10
  . s x1=$p(txt,sp,1,wrd20-1),x2=$p(txt,sp,wrd20,wrd10-1),x3=$p(txt,sp,wrd10,wrd2),x4=$p(txt,sp,wrd2+1,wrd1),x5=$p(txt,sp,wrd1+1,999)
- . s prefix=$g(x1)_"<span class='verse-syntax'>"_$g(x2)_"</span><span class='verse-trope-syntax'>"_$g(x3)_"</span><span class='verse-trope'>"_$g(x4)_"</span>"_$g(x5)
+ . s prefix=$g(x1)_" <span class='verse-syntax'> "_$g(x2)_"</span><span class='verse-trope-syntax'> "_$g(x3)_"</span><span class='verse-trope'> "_$g(x4)_"</span> "_$g(x5)
  d add("B'reishis "_chap_":"_verse_" "_$$zconvert^mkrutl(prefix,"O","UTF8"))
- ;
+ ; Row 1a: mismatch info
  s txt="<div class='mismatch_data'>Mismatch: Trope branch words "_wrd10_" - "_wrd1_", "
  s txt=txt_"<span class='verse-trope'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
  s txt=txt_". Syntax branch words "_wrd20_" - "_wrd2_", "
@@ -205,44 +200,20 @@ aSP(revtropes,wordIdx,partIdx,direction,dots,syntax)	; add left/right paren., an
  q
  ;
 add(x)	;
- s @glb1@($i(@glb1))=x
- q
- ;
-includeFile(filename) ;
- n file,line
- s file=##class(%File).%New(filename)
- i 'file.Open("R") w "Error opening file "_filename q
- f  d  q:file.AtEnd
- . s line=file.ReadLine()
- . d add(line)
- d file.Close()
- q
- ;
-writehdr(name)	; sidra if there is one
-	s sidra=$g(sidra)
-	; some html header stuff
-	f j=1:1 s x=$t(leadtxt+j) q:x[";;;"  s y=$p(x,";",3,99) d add(y)
-	d add("<title>"_name_"</title>")
-	d add("<style>")
-	d add("  .verse-trope-syntax {font-style: italic; font-weight: bold;}")
-	d add("  .verse-trope {font-style: italic; }")
-	d add("  .verse-syntax {font-weight: bold; }")
-	d add("</style>")
-	d add("</head>")
-	d add("<body>")
+	n cnt,glb1
+	s glb1="^TMP("_$j_",""out"")"
+	s (cnt,@glb1@(0))=$g(@glb1@(0))+1
+	s @glb1@(cnt)=x
 	q
- ;
-leadtxt	;
- ;;; <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
- ;;; <HTML LANG=ENG>
- ;;; <HEAD>
- ;;; <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=utf-8">
- ;;; <title>
- ;;; </title>
- ;;; <style>
- ;;;   .verse-trope-syntax {font-style: italic; font-weight: bold;}
- ;;;   .verse-trope {font-style: italic; }
- ;;;   .verse-syntax {font-weight: bold; }
- ;;; </style>
- ;;; </head>
- ;;; <body>
+	;
+includeFile(filename) ;
+ n file,i,inary,subpath
+ s subpath="QR\QRCode\Originals\out\includes\"
+ d readin1 ; loads inary array
+ f i=1:1 q:'$d(inary(i))  d
+ . d add(inary(i))
+ q
+readin1 ; Read single file
+ k inary
+ d getfile^mkrutl(filename,.inary,subpath)
+ q
