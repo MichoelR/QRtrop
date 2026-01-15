@@ -1,1 +1,3 @@
-Originals/out/
+Originals/out/*
+!Originals/out/includes/
+!Originals/out/includes/**
