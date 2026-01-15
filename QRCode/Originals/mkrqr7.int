@@ -146,7 +146,7 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trope-sy
  s row3="" ; build string RTL
  F i=minWord:1:maxWord D
  . S tropeL=$g(revTropes(i,"L")),trope=$g(revTropes(i)),tropeR=$g(revTropes(i,"R"))
- . S row3 = "<td>"_tropeL_"<span class='verse-trope'>"_trope_"</span>"_tropeR_"</td>" _ row3
+ . S row3 = "<td>"_tropeL_"<span class='verse-trope'> "_trope_"</span>"_tropeR_"</td>" _ row3
  d add(row3)
  d add("</tr>")
  ;
@@ -158,9 +158,12 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trope-sy
  .. S partTxt=""
  .. F k="L",0,"R" i $d(revSyn(i,j,k)) d  ; leaf or syntax branch ends
  ... S class=$s(k=0:"syntax-part",k="L":"branch-end",k="R":"branch-start",1:"")
- ... F cnt=$g(revSyn(i,j,k,0)):-1:1 d  ; maybe several on one part, esp. ('s
+ ... I k="L" F cnt=$g(revSyn(i,j,k,0)):-1:1 d  ; maybe several on one part, esp. ('s
  .... S part=revSyn(i,j,k,cnt)
- .... S partTxt=partTxt_$s(partTxt="":"",1:" ")_part
+ .... S partTxt=partTxt_part
+ ... E  F cnt=1:1:$g(revSyn(i,j,k,0)) d  ; maybe several on one part, esp. ('s
+ .... S part=revSyn(i,j,k,cnt)
+ .... S partTxt=partTxt_sp_part
  .. d add(partTxt)
  . d add("</td>")
  d add("</tr>")
@@ -184,8 +187,8 @@ aTP(revtropes,wordIdx,direction,dots,level,startWord,endWord,chap,verse)	; add l
  n dottxt,txt1,id
  s dottxt="" i $g(dots) s dottxt="..."
  s id="trope-"_chap_"-"_verse_"-"_level_"-"_startWord_"-"_endWord_"-"_direction
- i direction="L" s revtropes(wordIdx,"L") = "<span id='"_id_"' class='branch-end'>("_dottxt_"</span>"_$g(revtropes(wordIdx,"L"))
- i direction="R" s revtropes(wordIdx,"R") = $g(revtropes(wordIdx,"R"))_"<span id='"_id_"' class='branch-start'>"_dottxt_")</span>"
+ i direction="L" s revtropes(wordIdx,"L") = "<span id='"_id_"' class='branch-end'> ("_dottxt_"</span>"_$g(revtropes(wordIdx,"L"))
+ i direction="R" s revtropes(wordIdx,"R") = $g(revtropes(wordIdx,"R"))_"<span id='"_id_"' class='branch-start'> "_dottxt_")</span>"
  q
  ;
 aSP(revtropes,wordIdx,partIdx,direction,dots,syntax,level,startWord,endWord,chap,verse)	; add left/right paren., and syntax just next to left paren (on last word in section)
@@ -196,9 +199,9 @@ aSP(revtropes,wordIdx,partIdx,direction,dots,syntax,level,startWord,endWord,chap
  s syntax=$g(syntax)
  s dottxt="" i $g(dots) s dottxt="..."
  s id="syntax-"_chap_"-"_verse_"-"_level_"-"_startWord_"-"_endWord_"-"_direction
- i direction=0 s (cnt,revSyn(wordIdx,partIdx,0,0))=$g(revSyn(wordIdx,partIdx,0,0))+1,revSyn(wordIdx,partIdx,0,cnt)="<span class='syntax-part'>"_syntax_"</span>"
- i direction="L" s (cnt,revSyn(wordIdx,partIdx,"L",0)) = $g(revSyn(wordIdx,partIdx,"L",0))+1,revSyn(wordIdx,partIdx,"L",cnt)="<span id='"_id_"' class='branch-end'>("_dottxt_syntax_"</span>"
- i direction="R" s (cnt,revSyn(wordIdx,partIdx,"R",0))=$g(revSyn(wordIdx,partIdx,"R",0))+1,revSyn(wordIdx,partIdx,"R",cnt) = "<span id='"_id_"' class='branch-start'>"_dottxt_")</span>"
+ i direction=0 s (cnt,revSyn(wordIdx,partIdx,0,0))=$g(revSyn(wordIdx,partIdx,0,0))+1,revSyn(wordIdx,partIdx,0,cnt)="<span class='syntax-part'> "_syntax_"</span>"
+ i direction="L" s (cnt,revSyn(wordIdx,partIdx,"L",0)) = $g(revSyn(wordIdx,partIdx,"L",0))+1,revSyn(wordIdx,partIdx,"L",cnt)="<span id='"_id_"' class='branch-end'> ("_dottxt_syntax_"</span>"
+ i direction="R" s (cnt,revSyn(wordIdx,partIdx,"R",0))=$g(revSyn(wordIdx,partIdx,"R",0))+1,revSyn(wordIdx,partIdx,"R",cnt) = "<span id='"_id_"' class='branch-start'> "_dottxt_")</span>"
  q
  ;
 add(x)	;
