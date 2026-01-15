@@ -1,0 +1,216 @@
+mkrutl	; mkr 08/18/2016 - utilities to enable both Cache' and GT.M
+	q
+	;
+MTYPE() ; returns "CACHE ..." or "GTM ..."
+	q $$UP^XLFSTR($p($zversion," "))
+	    ;
+zconvert(str,direction,mode)	; use Cache' $zvconvert for UTF-8, but GT.M doesn't need it
+	; mode should for now just be "UTF8"
+	n str0,mtype
+	s mtype=$$MTYPE() ; CACHE or GTM
+	q:mtype["GT.M" str ; nothing to do
+	q:mtype'["CACHE" str ; ??
+	s str0=$zconvert(str,direction,mode)
+	q str0
+	;
+openfil(filenm,direction,newf,readonlyf,utf8f,timeout)	;
+	; very simplified file OPEN for Cache' and GT.M
+	; assumes UTF-8
+	;Cache': open fil:("NWS"):1 or open fil:("RS":/TRANSLATE=1:/IOTABLE="UTF8"):1
+	;GT.M: open sd:newversion or open sd:readonly
+	; $T gets set
+	n mtype
+	q:$g(filenm)=""  q:$g(direction)=""  q:"IO"'[$g(direction)
+	s:'$g(timeout) timeout=900 ; required
+	s mtype=$$MTYPE() ; CACHE or GTM
+	i mtype["GT.M" d openfilG q
+	i mtype["CACHE" d openfilC q
+	q
+openfilG	; GT.M
+	s ^mkr("fn")=filenm_"^"_direction_"^"_timeout ; DEBUGGING
+	i direction="I" open filenm:(readonly):timeout Q
+	i direction="O" open filenm:(newversion):timeout Q
+ 	q
+openfilC	; Cache'
+	; for now, don't use UTF-8 for output, use $zconvert
+	i direction="I" open filenm:("RS":/TRANSLATE=1:/IOTABLE="UTF8"):1 Q
+	i direction="O" open filenm:("NWS"):1 Q
+	q
+	;
+getPath()	; return root path for that system
+	n mtype,path,username
+	s path=""
+	s mtype=$$MTYPE() ; CACHE or GTM
+	i mtype["CACHE"	d
+	. s uu=$username
+	. s username=##class(%SYS.ProcessQuery).GetOSUsername() ;
+	. s path="C:\Users\"_username_"\Documents\Torah\"
+	.; s path="C:\Users\"_username_"\Google Drive\Torah\"
+	.; s path="G:\""My Drive""\Torah\"
+	.; s path="G:\My Drive\Torah\"
+	i mtype["GT.M" s path="/home/tattie/Documents/Torah/"
+	q path
+	;
+slash()	; / or \
+	s mtype=$$MTYPE()
+	i mtype["CACHE" q "\"
+	i mtype["GT.M" q "/"
+	q ""
+	;
+zhex(hex)	; convert to decimal
+	n mtype
+	s mtype=$$MTYPE()
+	i mtype["CACHE" q $zhex(hex)
+	i mtype["GT.M" q $$FUNC^%HD(hex)
+	q ""
+	;
+rbackup	; Cache' - backup routines.
+	; GT.M routines are already text
+	n file,filenm,num,path,x,y,y1
+	s path=$$getPath()_"RBackup\"
+	s x="mkq" f  s x=$o(^ROUTINE(x)) q:x=""  q:x'["mkr"  d
+	. s file=x_".m",filenm=path_file
+	. d openfil(filenm,"O",1,,1,1)	;
+	. i '$t w !,"Could not open "_filenm q
+	. s num=^ROUTINE(x,0,0)
+	. use filenm
+	. f i=1:1:num s y=^ROUTINE(x,0,i),y1=$$zconvert^mkrutl(y,"O","UTF8") w !,y1
+	. close filenm
+	q
+	;
+	;------UTILITIES to load various ^mkr1 global nodes to store useful info
+ldAll	;
+	d ldsefer,ldchars,ldsidros,ldnumbers
+	q
+	;
+ldsefer	; load mkr4 global w names of sefarim
+	; **OBSOLETE**
+	Q
+	n mkr,mkr1,nmEng,nmHeb,num,s,x
+	s s=";"
+	d getfile("sefer.txt",.mkr)
+	f ii=1:1 q:'$d(mkr(ii))  d
+	. s x=mkr(ii),num=$p(x,s),nmEng=$p(x,s,2),nmHeb=$p(x,s,3)
+	. s mkr1(num)=nmHeb,mkr1(num,"eng")=nmEng
+	k ^mkr4("sefer") m ^mkr4("sefer")=mkr1
+	q
+	;
+ldchars	; load mkr1 global w Unicode characters
+	; type = trope, vowel, letter
+	; for trope, this gathers extra information (mafsikim only):
+	;  level - highest level 1 for sof posuk and esnachta,
+	;                        2 for segol, zakef, tipcha, etc.
+	;  rank - within a level, three types:
+	;    0 : always just before the ruler, like tipcha before sof posuk
+	;    1 : repeating trope before that
+	;    2 : sometimes found before that at beginning of malchus
+	n char,hex,ii,lvl,mkr,mkr1,mkr11,t,type,uni,utf8,x,y
+	s t=$c(9)
+	d getfile("Unicode_characters.txt",.mkr)
+	f ii=2:1 q:'$d(mkr(ii))  d  ; skip title line
+	. s x=mkr(ii) q:x=""
+	. s type=$p(x,t),hex=$p($p(x,t,2),"+",2),char=$p(x,t,3)
+	. s utf8=$p(x,t,4),name=$p(x,t,5),lvl=$p(x,t,6),rank=$p(x,t,7)
+	. s uni=$$zhex^mkrutl(hex) ; Hex to decimal
+	. q:'uni
+	. f y="type","hex","char","utf8","name","lvl","rank" s mkr11(y)=@y
+	. m mkr1(uni)=mkr11
+	. i uni'=1462 s mkr1("nm",name)=uni ; SEGOL is both vowel and trope - annoying. Prefer the trope
+	. s mkr1("hex",hex)=uni
+	. s mkr1("type",type,uni)=""
+	. i lvl s mkr1("lvl",lvl,uni)=""
+	k ^mkr4("chars") m ^mkr4("chars")=mkr1
+	q
+	;
+ldsidros	; load mkr4 global w data on sidros.
+	; basically just name and posukim where they begin and end
+	n ch0,chL,ii,mkr,mkr1,nmEng,nm,sefer,t,v0,vL,x
+	s t=$c(9)
+	d getfile("Sidros.txt",.mkr)
+	f ii=2:1 q:'$d(mkr(ii))  d  ; skip title line
+	. s x=mkr(ii) q:x=""
+	. s nmEng=$p(x,t),nm=$p(x,t,2),sefer=$p(x,t,3)
+	. s ch0=$p(x,t,4),v0=$p(x,t,5),chL=$p(x,t,6),vL=$p(x,t,7) ; 1st, last chap, verse
+	. s cnt=0
+	. f y="nmEng","nm","sefer","ch0","v0","chL","vL" d
+	.. s cnt=cnt+1,@y=$p(x,t,cnt)
+	.. s mkr1(ii-1,y)=@y
+	k ^mkr4("sidros") m ^mkr4("sidros")=mkr1
+	q
+	;
+ldnumbers	; load mkr1 global w Hebrew letter <--> number equivalent
+	; aleph = 1, chaf = 20, etc.
+	n ii,letter,mkr,mkr1,number,t,x
+	s t=$c(9)
+	d getfile("numbers.txt",.mkr)
+	f ii=2:1 q:'$d(mkr(ii))  d  ; skip title line
+	. s x=mkr(ii) q:x=""
+	. s letter=$p(x,t),number=$p(x,t,2)
+	. s mkr1("l2n",letter)=number
+	. s mkr1("n2l",number)=letter
+	k ^mkr1("numbers") m ^mkr1("numbers")=mkr1
+	q
+	;
+letters2nos(letters)	; find number given (several) letters
+	; if there's a space in between, put space between numbers as well
+	n ii,jj,len,lets,letter,num,num1,numbers
+	m numbers=^mkr1("numbers")
+	s num=""
+	f jj=1:1:$l(letters," ") s lets=$p(letters," ",jj),num=num_" "_$$letters2nos1(lets)
+	s num=$e(num,2,999)
+	q num
+letters2nos1(lets)	 ; single number
+	n ii,letter,letters,num,num1
+	s num=0,len=$l(lets)
+	f ii=1:1:len d
+	. s letter=$e(lets,ii),num1=$g(numbers("l2n",letter))
+	. s num=num+num1
+	q num
+	;
+getfile(filenm,ary,subpath)	; read text file, return in "rtn" array by reference
+	n fil,path,s,sl,x
+	k ary
+	s subpath=$g(subpath)
+	s sl=$$slash^mkrutl() ; / or \
+	s path=$$getPath^mkrutl() ; default path for that system
+	i subpath'="" s path=path_subpath
+	e  s path=path_"QR"_sl_"ct2"_sl
+	;s fil=path_"QR"_sl_"ct2"_sl_filenm ; names of various sefarim in Tanach
+	s fil=path_filenm
+	d openfil^mkrutl(fil,"I",,1,1,1)	;
+	i '$t w !,"Couldn't open "_fil q
+	use fil f j=1:1 r x q:$zeof  s ary(j)=x
+	close fil
+	q
+	;
+getENum(x)	; convert number from Hebrew to English
+	n i,ln,x1,y
+	s y=0
+	s ln=$l(x) ; number of "digits", like nun-gimel is 2
+	f i=1:1:$l(x) d
+	. s x1=$e(x,i),y1=$g(^mkr2("cnums",x1)),y=y+y1
+	q y
+	;
+outChars	; list of Unicode characters
+	s t=$c(9)
+	s glb1="^TMP("_$j_",""out"")"
+	k @glb1
+	s str="uni"_t_"char"_t_"hex"_t_"lvl"_t_"name"_t_"rank"_t_"type"_t_"utf8"
+	d add(str)
+	s uni=0 f  s uni=$o(^mkr4("chars",uni)) q:uni=""  q:uni'?1.N  d
+	. k chars m chars=^mkr4("chars",uni)
+	. f x="char","hex","lvl","name","rank","type","utf8" s @x=chars(x)
+	. s str=uni_t_char_t_hex_t_lvl_t_name_t_rank_t_type_t_utf8
+	. s str=$$zconvert^mkrutl(str,"O","UTF8")
+	. d add(str)
+	d writeout^mkrqr1(,glb1,"Unicode_chars","out","tsv")
+	k @glb1
+	q
+	;
+add(x)	; add one row to output global
+	n glb1
+	s glb1="^TMP("_$j_",""out"")"
+	s (cnt,@glb1@(0))=$g(@glb1@(0))+1
+	s @glb1@(cnt)=x
+	q
+	;

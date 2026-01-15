@@ -1,0 +1,44 @@
+Suggestions for Enhancing HTML Output Visibility of Syntax/Trope Groupings
+
+Based on examining the HTML output (verses with trope and syntax trees in nested tables, using parentheses for hierarchies and spans for styling), here are ideas to make groupings more visible on hover, differentiating mismatches. Focus on interactivity, visual clarity, and user understanding via CSS and JavaScript injected into the generated HTML.
+
+Key Concepts:
+- Groupings to Highlight: On hover over a word/cell in the table's top row, visually emphasize trope branches (words connected by cantillation mark hierarchy) and syntax branches (words in same grammatical subtree). Show section boundaries via parentheses/spans.
+- Mismatch Differentiation: Words in mismatches (classes like verse-trope, verse-syntax) get distinct styling (e.g., red tint) to stand out.
+- Implementation: Modify MUMPS code (mkrqr7.int) to output enhanced HTML. Copy to NewCode/mkrqr7_enhanced.int and edit there.
+
+Suggested Visual Enhancements:
+1. Hover Effects on Word Cells:
+   - Highlight Connected Words: On hover, fade in background color (light blue for trope, light green for syntax) on all words in the same branch. Use opacity transitions for "pop-out" effect.
+   - Boundary Indicators: On hover, make parentheses (branch-start/branch-end spans) glow or bold (yellow outline) to trace hierarchy.
+   - Tooltip on Hover: Show popup with branch details (e.g., "Trope: ZAQEF QATAN branch (words 2-3)").
+   - Why? Reveals groupings without guessing from parentheses.
+
+2. Color Coding for Branches:
+   - Assign subtle backgrounds to cells by branch depth/type: Gray gradients for trope, blues/greens for syntax fading with depth.
+   - On hover, intensify color for the branch.
+   - Mismatch Overlay: Red border/tint on mismatch cells; pulse on hover.
+
+3. Interactive Animations:
+   - Smooth Transitions: 0.3s ease for color changes, slight zoom, or box-shadows to "pop out" sections.
+   - Hover Propagation: Highlight entire row and connected rows on word hover.
+   - Mismatch Alert: Subtle blinking for mismatch divs.
+
+4. Overall Layout Tweaks:
+   - Table Responsiveness: Scrollable with sticky headers.
+   - Legend/Key: Explain colors/symbols at top.
+   - Grouping Visuals: Connecting lines/arrows via CSS between related cells.
+
+5. JavaScript Logic:
+   - Scan tables for structures on load.
+   - On hover: Traverse DOM to apply styles to branch siblings.
+   - Detect mismatches via classes.
+   - Keep lightweight (vanilla JS).
+
+Potential Challenges & Trade-offs:
+- Performance: Precompute mappings for large verses.
+- Accessibility: Add ARIA labels.
+- Simplicity: Start minimal (hover highlights only).
+- Compatibility: Modern CSS/JS.
+
+These make groupings intuitive via dynamic reveals. Implement by modifying code in NewCode/.
