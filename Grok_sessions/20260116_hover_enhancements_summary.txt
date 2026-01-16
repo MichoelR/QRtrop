@@ -1,0 +1,49 @@
+Summary of Session: Enhancing Hover Interactions for QR Project Mismatch Display
+
+Date: January 16, 2026
+
+Overview:
+This session focused on refining the interactive hover features for the Hebrew trope-syntax mismatch analysis HTML output in the QR project. The goal was to make the display more intuitive by highlighting word ranges on hover, differentiating between trope and syntax elements, and providing visual feedback for mismatches.
+
+Key Enhancements Implemented:
+
+1. **Basic Hover Highlights:**
+   - Added CSS classes for highlighting words on hover over branch markers.
+   - Gold background for trope branches, light blue for syntax branches.
+   - Smooth transitions for highlight appearance/disappearance.
+
+2. **Mismatch Range Highlighting:**
+   - Modified MUMPS code to add data-words attributes to mismatch spans.
+   - JavaScript listens for hover on mismatch text, highlighting the full trope and syntax ranges.
+   - Dim/bright opacity: hovered range bright (100%), other range dim (50%).
+
+3. **Persistent Highlights:**
+   - Updated JS to use counters, allowing multiple simultaneous highlights without interference.
+   - Overlapping words show purple background.
+
+4. **Color Differentiation:**
+   - Trope: Gold (#FFD700 equivalent)
+   - Syntax: Light Blue (#ADD8E6)
+   - Overlaps: Plum (#DDA0DD) with 70% opacity
+
+5. **Visual Adjustments:**
+   - Experimented with outlines, borders, and box-shadows for range boxes.
+   - Attempted to create independent rectangular markers for trope (green) and syntax (red) ranges.
+   - Ultimately simplified back to core highlights for cleaner interface.
+
+Technical Changes:
+- **MUMPS (NewCode/mkrqr7_enhanced.int):** Added data-words to mismatch spans.
+- **CSS (Originals/out/includes/style.css):** Highlight classes with colors, opacity, transitions.
+- **JS (Originals/out/includes/header.html):** Event listeners for branch markers and mismatch spans, with counters for persistence.
+
+Current State:
+- Hovering branch markers highlights their word ranges in appropriate colors.
+- Hovering mismatch spans highlights both ranges with bright/dim effect.
+- Overlaps handled with purple.
+- Interface is functional and visually clear.
+
+Future Possibilities:
+- Revisit range boxes if desired for more explicit mismatch visualization.
+- Add tooltips or additional interactivity.
+
+Session concluded with user satisfied; ready for further development.

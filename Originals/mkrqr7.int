@@ -1,7 +1,7 @@
-mkrqr7	; mkr 07/31/2025; kriah (קריה), trope (טעמים), and syntax - various queries
+mkrqr7	; mkr 07/31/2025; kriah (קריה), trop (טעמים), and syntax - various queries
 	;
 	;
-findMismatch ; Find mismatches between trope (lvls) and syntax (fslvls) trees in ^torah2
+findMismatch ; Find mismatches between trop (lvls) and syntax (fslvls) trees in ^torah2
  n bookName,chars,glb0,glb1,NONLETTERS,sefer,sefarim
  ;
  s U="^",P="|",sp=" "
@@ -27,13 +27,13 @@ findMismatchVerse(bookn,versen) ; Find mismatches for a specific verse
  n lvls,fslvls,lvl1,wrd1,lvl2,wrd2,wrdpart,posuk
  ;
  M posuk=^torah2(bookn,versen) ; all verse info
- ; Get lvls (trope levels)
+ ; Get lvls (trop levels)
  m lvls=posuk("lvls")
  ;
  ; Get fslvls (syntax levels)
  m fslvls=posuk("fslvls")
  ;
- s lvl1="" f  s lvl1=$o(lvls(lvl1)) q:lvl1=""  d  ; trope
+ s lvl1="" f  s lvl1=$o(lvls(lvl1)) q:lvl1=""  d  ; trop
  . s wrd1="" f  s wrd1=$o(lvls(lvl1,wrd1)) q:wrd1=""  d
  .. s lvl2="" f  s lvl2=$o(fslvls(lvl2)) q:lvl2=""  d  ; syntax
  ... s wrd2="" f  s wrd2=$o(fslvls(lvl2,wrd2)) q:wrd2=""  d
@@ -55,11 +55,11 @@ findMismatch1(book,verse,lvl1,wrd1,lvl2,wrd2,wrdpart) ; compare two branches
  i foundf d displayMismatch(book,verse,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2)
  q
  ;
-displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trope-syntax mismatch
+displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syntax mismatch
  ; Inputs: bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart
  ; Output: 4-row monospaced text display, all RTL
  N posuk,wrds,wrdcnt,i,j,k,level,endWord,partIdx
- N startWord,nodeType,part,trope,minWord,maxWord,prefix,revTropes,revSyn
+ N startWord,nodeType,part,trop,minWord,maxWord,prefix,revTrops,revSyn
  ;
  M posuk=^torah2(bookn,versen) ; all verse info
  ; Get verse data
@@ -71,13 +71,13 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trope-sy
  I maxWord<wrd10 S maxWord=wrd10
  I maxWord<wrd20 S maxWord=wrd20
  ;
- ; Prepare tropes and syntax for the range,
+ ; Prepare trops and syntax for the range,
  ;  adding brackets for the sections and sub-sections
  ;
  F i=minWord:1:maxWord D
- . ; Tropes - build list
- . S trope=$$getTaam(.posuk,i)
- . S revTropes(i)=trope
+ . ; Trops - build list
+ . S trop=$$getTaam(.posuk,i)
+ . S revTrops(i)=trop
  ;
  F level=4:-1:1 D ; sections begin and end, enclose in ( )
  . s endWord="" f  s endWord=$o(posuk("lvls",level,endWord)) q:endWord=""  D
@@ -85,11 +85,11 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trope-sy
  ..; these might be inside or outside our range
  .. Q:startWord>maxWord  Q:endWord<minWord  ; totally off the radar
  .. I startWord<minWord Q:((level+1)<lvl1)  d  ; add parens on first and last word of section
- ... d aTP(.revTropes,minWord,"R",1,level,startWord,endWord,chap,verse)
- .. E  d aTP(.revTropes,startWord,"R",,level,startWord,endWord,chap,verse)
+ ... d aTP(.revTrops,minWord,"R",1,level,startWord,endWord,chap,verse)
+ .. E  d aTP(.revTrops,startWord,"R",,level,startWord,endWord,chap,verse)
  .. I endWord>maxWord Q:((level+1)<lvl1)  d
- ... d aTP(.revTropes,maxWord,"L",1,level,startWord,endWord,chap,verse)
- .. E  d aTP(.revTropes,endWord,"L",,level,startWord,endWord,chap,verse)
+ ... d aTP(.revTrops,maxWord,"L",1,level,startWord,endWord,chap,verse)
+ .. E  d aTP(.revTrops,endWord,"L",,level,startWord,endWord,chap,verse)
  ;
  ; Syntax - build list
  F level=4:-1:1 D ; sections begin and end, enclose in ( )
@@ -119,14 +119,14 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trope-sy
  s txt=wrds
  i wrd10<wrd20 d
  . s x1=$p(txt,sp,1,wrd10-1),x2=$p(txt,sp,wrd10,wrd20-1),x3=$p(txt,sp,wrd20,wrd1),x4=$p(txt,sp,wrd1+1,wrd2),x5=$p(txt,sp,wrd2+1,999)
- . s prefix=$g(x1)_" <span class='verse-trope'> "_$g(x2)_"</span><span class='verse-trope-syntax'> "_$g(x3)_"</span><span class='verse-syntax'> "_$g(x4)_"</span> "_$g(x5)
+ . s prefix=$g(x1)_" <span class='verse-trop'> "_$g(x2)_"</span><span class='verse-trop-syntax'> "_$g(x3)_"</span><span class='verse-syntax'> "_$g(x4)_"</span> "_$g(x5)
  e  d  ; wrd20<wrd10
  . s x1=$p(txt,sp,1,wrd20-1),x2=$p(txt,sp,wrd20,wrd10-1),x3=$p(txt,sp,wrd10,wrd2),x4=$p(txt,sp,wrd2+1,wrd1),x5=$p(txt,sp,wrd1+1,999)
- . s prefix=$g(x1)_" <span class='verse-syntax'> "_$g(x2)_"</span><span class='verse-trope-syntax'> "_$g(x3)_"</span><span class='verse-trope'> "_$g(x4)_"</span> "_$g(x5)
+ . s prefix=$g(x1)_" <span class='verse-syntax'> "_$g(x2)_"</span><span class='verse-trop-syntax'> "_$g(x3)_"</span><span class='verse-trop'> "_$g(x4)_"</span> "_$g(x5)
  d add("B'reishis "_chap_":"_verse_" "_$$zconvert^mkrutl(prefix,"O","UTF8"))
  ; Row 1a: mismatch info
- s txt="<div class='mismatch_data'>Mismatch: Trope branch words "_wrd10_" - "_wrd1_", "
- s txt=txt_"<span class='verse-trope'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
+ s txt="<div class='mismatch_data'>Mismatch: Trop branch words "_wrd10_" - "_wrd1_", "
+ s txt=txt_"<span class='verse-trop'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
  s txt=txt_". Syntax branch words "_wrd20_" - "_wrd2_", "
  s txt=txt_"<span class='verse-syntax'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</div>"
  d add($$zconvert^mkrutl(txt,"O","UTF8"))
@@ -142,11 +142,11 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trope-sy
  d add("</tr>")
  ;
  d add("<tr>")
- ; Row 3: Tropes - LTR build, RTL display
+ ; Row 3: Trops - LTR build, RTL display
  s row3="" ; build string RTL
  F i=minWord:1:maxWord D
- . S tropeL=$g(revTropes(i,"L")),trope=$g(revTropes(i)),tropeR=$g(revTropes(i,"R"))
- . S row3 = "<td>"_tropeL_"<span class='verse-trope'> "_trope_"</span>"_tropeR_"</td>" _ row3
+ . S tropL=$g(revTrops(i,"L")),trop=$g(revTrops(i)),tropR=$g(revTrops(i,"R"))
+ . S row3 = "<td>"_tropL_"<span> "_trop_"</span>"_tropR_"</td>" _ row3
  d add(row3)
  d add("</tr>")
  ;
@@ -183,15 +183,15 @@ getTaam(posuk,i) ; for ith word
  . s taam1=chars(unicode,"name"),taam=taam_$s(taam="":"",1:" ")_taam1
  q taam
  ;
-aTP(revtropes,wordIdx,direction,dots,level,startWord,endWord,chap,verse)	; add left/right paren. revtropes array in/out by reference
+aTP(revtrops,wordIdx,direction,dots,level,startWord,endWord,chap,verse)	; add left/right paren. revtrops array in/out by reference
  n dottxt,txt1,id
  s dottxt="" i $g(dots) s dottxt="..."
- s id="trope-"_chap_"-"_verse_"-"_level_"-"_startWord_"-"_endWord_"-"_direction
- i direction="L" s revtropes(wordIdx,"L") = "<span id='"_id_"' class='branch-end'> ("_dottxt_"</span>"_$g(revtropes(wordIdx,"L"))
- i direction="R" s revtropes(wordIdx,"R") = $g(revtropes(wordIdx,"R"))_"<span id='"_id_"' class='branch-start'> "_dottxt_")</span>"
+ s id="trop-"_chap_"-"_verse_"-"_level_"-"_startWord_"-"_endWord_"-"_direction
+ i direction="L" s revtrops(wordIdx,"L") = "<span id='"_id_"' class='branch-end'> ("_dottxt_"</span>"_$g(revtrops(wordIdx,"L"))
+ i direction="R" s revtrops(wordIdx,"R") = $g(revtrops(wordIdx,"R"))_"<span id='"_id_"' class='branch-start'> "_dottxt_")</span>"
  q
  ;
-aSP(revtropes,wordIdx,partIdx,direction,dots,syntax,level,startWord,endWord,chap,verse)	; add left/right paren., and syntax just next to left paren (on last word in section)
+aSP(revtrops,wordIdx,partIdx,direction,dots,syntax,level,startWord,endWord,chap,verse)	; add left/right paren., and syntax just next to left paren (on last word in section)
  ; leaves and syntax are (somewhat) independent: leaves never need ( ), syntax always does.
  n cnt,dottxt,txt1,id
  s partIdx=$g(partIdx)
