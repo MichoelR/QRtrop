@@ -1,9 +1,9 @@
 Summary of Session: Enhancing Hover Interactions for QR Project Mismatch Display
 
-Date: January 16, 2026
+Date: January 16, 2026 (Extended Session)
 
 Overview:
-This session focused on refining the interactive hover features for the Hebrew trope-syntax mismatch analysis HTML output in the QR project. The goal was to make the display more intuitive by highlighting word ranges on hover, differentiating between trope and syntax elements, and providing visual feedback for mismatches.
+This session initially focused on refining the interactive hover features for the Hebrew trope-syntax mismatch analysis HTML output in the QR project. The goal was to make the display more intuitive by highlighting word ranges on hover, differentiating between trope and syntax elements, and providing visual feedback for mismatches. The session was extended to implement pair highlighting for parentheses, making the structure even clearer.
 
 Key Enhancements Implemented:
 
@@ -26,24 +26,34 @@ Key Enhancements Implemented:
    - Syntax: Light Blue (#ADD8E6)
    - Overlaps: Plum (#DDA0DD) with 70% opacity
 
-5. **Visual Adjustments:**
+5. **Paren Pair Highlighting:**
+   - Modified MUMPS code to generate unique IDs for paren spans, including startPart and endPart for syntax pairs.
+   - JavaScript now highlights both sides of a paren pair on hover, with matching colors.
+   - Full-height backgrounds for paren spans to increase visibility and hover area.
+   - Trope pairs: Gold background with black text.
+   - Syntax pairs: Light blue background with black text.
+
+6. **Visual Adjustments:**
    - Experimented with outlines, borders, and box-shadows for range boxes.
    - Attempted to create independent rectangular markers for trope (green) and syntax (red) ranges.
    - Ultimately simplified back to core highlights for cleaner interface.
+   - Adjusted paren span styling for full cell height and better interactivity.
 
 Technical Changes:
-- **MUMPS (NewCode/mkrqr7_enhanced.int):** Added data-words to mismatch spans.
-- **CSS (Originals/out/includes/style.css):** Highlight classes with colors, opacity, transitions.
-- **JS (Originals/out/includes/header.html):** Event listeners for branch markers and mismatch spans, with counters for persistence.
+- **MUMPS (NewCode/mkrqr7_current.int):** Updated aTP and aSP subroutines for unique IDs; added startPart/endPart parameters to aSP.
+- **CSS (Originals/out/includes/style.css):** Highlight classes with colors, opacity, transitions; added pair highlight classes; adjusted paren span styles for full height.
+- **JS (Originals/out/includes/header.html):** Event listeners for branch markers and mismatch spans, with counters for persistence; added pair highlighting logic.
 
 Current State:
-- Hovering branch markers highlights their word ranges in appropriate colors.
+- Hovering branch markers highlights their word ranges and both paren sides in appropriate colors.
 - Hovering mismatch spans highlights both ranges with bright/dim effect.
 - Overlaps handled with purple.
-- Interface is functional and visually clear.
+- Paren pairs highlight together with full-height backgrounds.
+- Interface is functional, visually clear, and highly interactive.
 
 Future Possibilities:
 - Revisit range boxes if desired for more explicit mismatch visualization.
 - Add tooltips or additional interactivity.
+- Explore further enhancements for user experience.
 
-Session concluded with user satisfied; ready for further development.
+Session concluded with user highly satisfied; QR project hover interactions significantly improved.

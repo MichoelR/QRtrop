@@ -104,15 +104,15 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  ....; for leaf, startWord=endWord,startPart=endPart
  .... i startWord'=endWord W !,"error startWord "_startWord_", endword "_endWord q
  .... i startPart'=endPart W !,"error startPart "_startPart_", endword "_endPart q
- .... d aSP(.revSyn,startWord,startPart,0,,leafSyntax,level,startWord,endWord,chap,verse)
+ .... d aSP(.revSyn,startWord,startPart,0,,leafSyntax,level,startWord,endWord,chap,verse,startPart,startPart)
  ... Q:((level+1)<lvl1)  ; don't need to look that far out
  ... ; add parens on first and last word of section, and syntax
  ... I startWord<minWord d  ; add ...
- .... d aSP(.revSyn,minWord,,"R",1,,level,startWord,endWord,chap,verse)
- ... E  d aSP(.revSyn,startWord,startPart,"R",,,level,startWord,endWord,chap,verse)
+ .... d aSP(.revSyn,minWord,,"R",1,,level,startWord,endWord,chap,verse,startPart,endPart)
+ ... E  d aSP(.revSyn,startWord,startPart,"R",,,level,startWord,endWord,chap,verse,startPart,endPart)
  ... I endWord>maxWord d
- .... d aSP(.revSyn,maxWord,,"L",1,syntax,level,startWord,endWord,chap,verse)
- ... E  d aSP(.revSyn,endWord,endPart,"L",,syntax,level,startWord,endWord,chap,verse)
+ .... d aSP(.revSyn,maxWord,,"L",1,syntax,level,startWord,endWord,chap,verse,startPart,endPart)
+ ... E  d aSP(.revSyn,endWord,endPart,"L",,syntax,level,startWord,endWord,chap,verse,startPart,endPart)
  ;
  d add("<div>")
  ;
@@ -191,14 +191,14 @@ aTP(revTrops,wordIdx,direction,dots,level,startWord,endWord,chap,verse)	; add le
  i direction="R" s revTrops(wordIdx,"R") = $g(revTrops(wordIdx,"R"))_"<span id='"_id_"' class='branch-start'>"_dottxt_")</span>"
  q
  ;
-aSP(revTrops,wordIdx,partIdx,direction,dots,syntax,level,startWord,endWord,chap,verse)	; add left/right paren., and syntax just next to left paren (on last word in section)
+aSP(revTrops,wordIdx,partIdx,direction,dots,syntax,level,startWord,endWord,chap,verse,startPart,endPart)	; add left/right paren., and syntax just next to left paren (on last word in section)
  ; leaves and syntax are (somewhat) independent: leaves never need ( ), syntax always does.
  n cnt,dottxt,txt1,id
  s partIdx=$g(partIdx)
  i partIdx="" s partIdx=$s(direction="L":1000,direction="R":0,1:"") ; use 0 or 1000 if not specified to make it the last one
  s syntax=$g(syntax)
  s dottxt="" i $g(dots) s dottxt="..."
- s id="syntax-"_chap_"-"_verse_"-"_level_"-"_startWord_"-"_endWord_"-"_direction
+ s id="syntax-"_chap_"-"_verse_"-"_level_"-"_startWord_"-"_endWord_"-"_startPart_"-"_endPart_"-"_direction
  i direction=0 s (cnt,revSyn(wordIdx,partIdx,0,0))=$g(revSyn(wordIdx,partIdx,0,0))+1,revSyn(wordIdx,partIdx,0,cnt)="<span class='syntax-part'>"_syntax_"</span>"
  i direction="L" s (cnt,revSyn(wordIdx,partIdx,"L",0)) = $g(revSyn(wordIdx,partIdx,"L",0))+1,revSyn(wordIdx,partIdx,"L",cnt)="<span id='"_id_"' class='branch-end'>("_dottxt_syntax_"</span>"
  i direction="R" s (cnt,revSyn(wordIdx,partIdx,"R",0))=$g(revSyn(wordIdx,partIdx,"R",0))+1,revSyn(wordIdx,partIdx,"R",cnt) = "<span id='"_id_"' class='branch-start'>"_dottxt_")</span>"
