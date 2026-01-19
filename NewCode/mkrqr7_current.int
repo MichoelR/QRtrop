@@ -1,4 +1,4 @@
-mkrqr7	; mkr 07/31/2025; kriah (קריה), trop (טעמים), and syntax - various queries
+﻿mkrqr7	; mkr 07/31/2025; kriah (×§×¨×™×”), trop (×˜×¢×ž×™×), and syntax - various queries
 	;
 	;
 findMismatch ; Find mismatches between trop (lvls) and syntax (fslvls) trees in ^torah2
@@ -222,3 +222,4 @@ readin1 ; Read single file
  k inary
  d getfile^mkrutl(filename,.inary,subpath)
  q
+
