@@ -1,4 +1,4 @@
-﻿mkrqr7	; mkr 07/31/2025; kriah (×§×¨×™×”), trop (×˜×¢×ž×™×), and syntax - various queries
+mkrqr7	; mkr 07/31/2025; kriah (קריה), trop (טעמים), and syntax - various queries
 	;
 	;
 findMismatch ; Find mismatches between trop (lvls) and syntax (fslvls) trees in ^torah2
@@ -19,7 +19,7 @@ findMismatch ; Find mismatches between trop (lvls) and syntax (fslvls) trees in 
  . d includeFile("header.html")
  . f versen=1:1 q:'$d(^torah2(bookn,versen))  d findMismatchVerse(bookn,versen)
  . d includeFile("footer.html")
- . d writeout^mkrqr1(bookn,glb1,"findMismatch"_bookName,"QRCode\Originals\out","html") ; output to file
+ . d writeout^mkrqr1(bookn,glb1,"findMismatch"_bookName,"QRCode\out","html") ; output to file
  . k @glb1
  q
  ;
@@ -85,11 +85,11 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  ..; these might be inside or outside our range
  .. Q:startWord>maxWord  Q:endWord<minWord  ; totally off the radar
  .. I startWord<minWord Q:((level+1)<lvl1)  d  ; add parens on first and last word of section
- ... d aTP(.revTrops,minWord,"R",1,level,startWord,endWord,chap,verse)
- .. E  d aTP(.revTrops,startWord,"R",,level,startWord,endWord,chap,verse)
+ ... d aTP(.revTrops,minWord,"R",1,level,startWord,endWord,chap,verse,lvl1,wrd10,wrd1)
+ .. E  d aTP(.revTrops,startWord,"R",,level,startWord,endWord,chap,verse,lvl1,wrd10,wrd1)
  .. I endWord>maxWord Q:((level+1)<lvl1)  d
- ... d aTP(.revTrops,maxWord,"L",1,level,startWord,endWord,chap,verse)
- .. E  d aTP(.revTrops,endWord,"L",,level,startWord,endWord,chap,verse)
+ ... d aTP(.revTrops,maxWord,"L",1,level,startWord,endWord,chap,verse,lvl1,wrd10,wrd1)
+ .. E  d aTP(.revTrops,endWord,"L",,level,startWord,endWord,chap,verse,lvl1,wrd10,wrd1)
  ;
  ; Syntax - build list
  F level=4:-1:1 D ; sections begin and end, enclose in ( )
@@ -104,15 +104,15 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  ....; for leaf, startWord=endWord,startPart=endPart
  .... i startWord'=endWord W !,"error startWord "_startWord_", endword "_endWord q
  .... i startPart'=endPart W !,"error startPart "_startPart_", endword "_endPart q
- .... d aSP(.revSyn,startWord,startPart,0,,leafSyntax,level,startWord,endWord,chap,verse,startPart,startPart)
+ .... d aSP(.revSyn,startWord,startPart,0,,leafSyntax,level,startWord,endWord,chap,verse,startPart,startPart,lvl2,wrd20,wrd2)
  ... Q:((level+1)<lvl1)  ; don't need to look that far out
  ... ; add parens on first and last word of section, and syntax
  ... I startWord<minWord d  ; add ...
- .... d aSP(.revSyn,minWord,,"R",1,,level,startWord,endWord,chap,verse,startPart,endPart)
- ... E  d aSP(.revSyn,startWord,startPart,"R",,,level,startWord,endWord,chap,verse,startPart,endPart)
+ .... d aSP(.revSyn,minWord,,"R",1,,level,startWord,endWord,chap,verse,startPart,endPart,lvl2,wrd20,wrd2)
+ ... E  d aSP(.revSyn,startWord,startPart,"R",,,level,startWord,endWord,chap,verse,startPart,endPart,lvl2,wrd20,wrd2)
  ... I endWord>maxWord d
- .... d aSP(.revSyn,maxWord,,"L",1,syntax,level,startWord,endWord,chap,verse,startPart,endPart)
- ... E  d aSP(.revSyn,endWord,endPart,"L",,syntax,level,startWord,endWord,chap,verse,startPart,endPart)
+ .... d aSP(.revSyn,maxWord,,"L",1,syntax,level,startWord,endWord,chap,verse,startPart,endPart,lvl2,wrd20,wrd2)
+ ... E  d aSP(.revSyn,endWord,endPart,"L",,syntax,level,startWord,endWord,chap,verse,startPart,endPart,lvl2,wrd20,wrd2)
  ;
  d add("<div>")
  ;
@@ -183,25 +183,29 @@ getTaam(posuk,i) ; for ith word
  . s taam1=chars(unicode,"name"),taam=taam_$s(taam="":"",1:" ")_taam1
  q taam
  ;
-aTP(revTrops,wordIdx,direction,dots,level,startWord,endWord,chap,verse)	; add left/right paren. revTrops array in/out by reference
- n dottxt,txt1,id
+aTP(revTrops,wordIdx,direction,dots,level,startWord,endWord,chap,verse,mismatchLevel,mismatchStart,mismatchEnd)	; add left/right paren. revTrops array in/out by reference
+ n dottxt,txt1,id,class
  s dottxt="" i $g(dots) s dottxt="..."
  s id="trop-"_chap_"-"_verse_"-"_level_"-"_startWord_"-"_endWord_"-"_direction
- i direction="L" s revTrops(wordIdx,"L") = "<span id='"_id_"' class='branch-end'>("_dottxt_"</span>"_$g(revTrops(wordIdx,"L"))
- i direction="R" s revTrops(wordIdx,"R") = $g(revTrops(wordIdx,"R"))_"<span id='"_id_"' class='branch-start'>"_dottxt_")</span>"
+ s class = $s(direction="L":"branch-end",direction="R":"branch-start",1:"")_" trop-level-"_level
+ i (level=mismatchLevel) & (startWord=mismatchStart) & (endWord=mismatchEnd) s class = class_" mismatch-pair"
+ i direction="L" s revTrops(wordIdx,"L") = "<span id='"_id_"' class='"_class_"'>("_dottxt_"</span>"_$g(revTrops(wordIdx,"L"))
+ i direction="R" s revTrops(wordIdx,"R") = $g(revTrops(wordIdx,"R"))_"<span id='"_id_"' class='"_class_"'>"_dottxt_")</span>"
  q
  ;
-aSP(revTrops,wordIdx,partIdx,direction,dots,syntax,level,startWord,endWord,chap,verse,startPart,endPart)	; add left/right paren., and syntax just next to left paren (on last word in section)
+aSP(revTrops,wordIdx,partIdx,direction,dots,syntax,level,startWord,endWord,chap,verse,startPart,endPart,mismatchLevel,mismatchStart,mismatchEnd)	; add left/right paren., and syntax just next to left paren (on last word in section)
  ; leaves and syntax are (somewhat) independent: leaves never need ( ), syntax always does.
- n cnt,dottxt,txt1,id
+ n cnt,dottxt,txt1,id,class
  s partIdx=$g(partIdx)
  i partIdx="" s partIdx=$s(direction="L":1000,direction="R":0,1:"") ; use 0 or 1000 if not specified to make it the last one
  s syntax=$g(syntax)
  s dottxt="" i $g(dots) s dottxt="..."
  s id="syntax-"_chap_"-"_verse_"-"_level_"-"_startWord_"-"_endWord_"-"_startPart_"-"_endPart_"-"_direction
+ s class = $s(direction="L":"branch-end syntax-level-"_level,direction="R":"branch-start syntax-level-"_level,1:"syntax-part")
+ i (direction="L"!(direction="R")) & (level=mismatchLevel) & (startWord=mismatchStart) & (endWord=mismatchEnd) s class = class_" mismatch-pair"
  i direction=0 s (cnt,revSyn(wordIdx,partIdx,0,0))=$g(revSyn(wordIdx,partIdx,0,0))+1,revSyn(wordIdx,partIdx,0,cnt)="<span class='syntax-part'>"_syntax_"</span>"
- i direction="L" s (cnt,revSyn(wordIdx,partIdx,"L",0)) = $g(revSyn(wordIdx,partIdx,"L",0))+1,revSyn(wordIdx,partIdx,"L",cnt)="<span id='"_id_"' class='branch-end'>("_dottxt_syntax_"</span>"
- i direction="R" s (cnt,revSyn(wordIdx,partIdx,"R",0))=$g(revSyn(wordIdx,partIdx,"R",0))+1,revSyn(wordIdx,partIdx,"R",cnt) = "<span id='"_id_"' class='branch-start'>"_dottxt_")</span>"
+ i direction="L" s (cnt,revSyn(wordIdx,partIdx,"L",0)) = $g(revSyn(wordIdx,partIdx,"L",0))+1,revSyn(wordIdx,partIdx,"L",cnt)="<span id='"_id_"' class='"_class_"'>("_dottxt_syntax_"</span>"
+ i direction="R" s (cnt,revSyn(wordIdx,partIdx,"R",0))=$g(revSyn(wordIdx,partIdx,"R",0))+1,revSyn(wordIdx,partIdx,"R",cnt) = "<span id='"_id_"' class='"_class_"'>"_dottxt_")</span>"
  q
  ;
 add(x)	;
@@ -222,4 +226,3 @@ readin1 ; Read single file
  k inary
  d getfile^mkrutl(filename,.inary,subpath)
  q
-
