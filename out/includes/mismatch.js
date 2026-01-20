@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (tropCells.length) {
           const startCol = cells.indexOf(tropCells[0]) + 1;
           const endCol = cells.indexOf(tropCells[tropCells.length - 1]) + 1;
-          highlightCellRange(table, 1, startCol, 1, endCol, 4, 1.5); // borderPx=4 for trope
+          highlightCellRange(table, 1, startCol, 1, endCol, 4, 1.5, 'orange'); // borderPx=4 for trope
         }
 
         // For syntax
@@ -321,18 +321,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (syntaxCells.length) {
           const startCol = cells.indexOf(syntaxCells[0]) + 1;
           const endCol = cells.indexOf(syntaxCells[syntaxCells.length - 1]) + 1;
-          highlightCellRange(table, 1, startCol, 1, endCol, -4, 1.5); // borderPx=-4 for syntax
+          highlightCellRange(table, 1, startCol, 1, endCol, -4, 1.5, 'blue'); // borderPx=-4 for syntax
         }
 
-        // Add red borders to mismatch_data spans to match
+        // Add colored borders to mismatch_data spans to match highlight colors
         if (tropSpan) {
-          tropSpan.style.border = '1.5px solid red';
+          tropSpan.style.border = '1.5px solid orange';
           tropSpan.style.padding = '6px 2px';
           tropSpan.style.display = 'inline-block';
         }
         if (syntaxSpan) {
-          syntaxSpan.style.border = '1.5px solid red';
-          syntaxSpan.style.padding = '0px';
+          syntaxSpan.style.border = '1.5px solid blue';
+          syntaxSpan.style.padding = '2px';
           syntaxSpan.style.display = 'inline-block';
         }
 
@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, borderPx = 3, borderThickPx = 1) {
+function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, borderPx = 3, borderThickPx = 1, color = 'red') {
   const rect = table.getBoundingClientRect();
   const rowStarts = Array.from(table.rows).slice(startRow - 1, endRow);
   const firstCell = rowStarts[0] && rowStarts[0].cells[startCol - 1];
@@ -364,7 +364,7 @@ function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, b
   
   const highlight = document.createElement('div');
   highlight.className = 'cell-highlight';
-  highlight.style.cssText = `position: absolute; top: ${top}px; left: ${left}px; width: ${width}px; height: ${height}px; border: ${borderThickPx}px solid red; pointer-events: none; z-index: 100; box-sizing: border-box;`;
+  highlight.style.cssText = `position: absolute; top: ${top}px; left: ${left}px; width: ${width}px; height: ${height}px; border: ${borderThickPx}px solid ${color}; pointer-events: none; z-index: 100; box-sizing: border-box;`;
   
   table.style.position = 'relative';
   table.style.overflow = 'visible';
