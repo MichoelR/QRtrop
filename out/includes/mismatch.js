@@ -28,8 +28,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         span.classList.add('highlight-pair');
         // Highlight associated trop text
-        const td = span.closest('td');
-        const tropSpan = td ? td.querySelector('.verse-trop') : null;
+        let tropSpan = null;
+        if (isTrope) {
+          // For trope, highlight the mafsik: the trop in the td of the left paren
+          let leftParen;
+          if (parts[dirIndex] === 'L') {
+            leftParen = span; // this is the left paren
+          } else {
+            // find the paired left paren
+            const pairDirection = 'L';
+            const pairParts = [...parts];
+            pairParts[dirIndex] = pairDirection;
+            const pairId = pairParts.join('-');
+            leftParen = document.getElementById(pairId);
+          }
+          if (leftParen) {
+            const td = leftParen.closest('td');
+            tropSpan = td ? td.querySelector('.verse-trop') : null;
+          }
+        } else {
+          const td = span.closest('td');
+          tropSpan = td ? td.querySelector('.verse-trop') : null;
+        }
         if (tropSpan) {
           tropSpan.classList.add('highlight-pair');
         }
@@ -75,8 +95,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         span.classList.remove('highlight-pair');
         // Remove highlight from associated trop text
-        const td = span.closest('td');
-        const tropSpan = td ? td.querySelector('.verse-trop') : null;
+        let tropSpan = null;
+        if (isTrope) {
+          // For trope, the mafsik: the trop in the td of the left paren
+          let leftParen;
+          if (parts[dirIndex] === 'L') {
+            leftParen = span; // this is the left paren
+          } else {
+            // find the paired left paren
+            const pairDirection = 'L';
+            const pairParts = [...parts];
+            pairParts[dirIndex] = pairDirection;
+            const pairId = pairParts.join('-');
+            leftParen = document.getElementById(pairId);
+          }
+          if (leftParen) {
+            const td = leftParen.closest('td');
+            tropSpan = td ? td.querySelector('.verse-trop') : null;
+          }
+        } else {
+          const td = span.closest('td');
+          tropSpan = td ? td.querySelector('.verse-trop') : null;
+        }
         if (tropSpan) {
           tropSpan.classList.remove('highlight-pair');
         }
@@ -147,6 +187,98 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
 
+      }
+    });
+  });
+});
+
+// Add listeners for mafsik (last trop in trope row)
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('table tr:nth-child(2) .verse-trop').forEach(span => {  // second row is trope row
+    // Only add listeners if it's a mafsik: has a left paren directly to its left
+    if (!span.previousElementSibling || !span.previousElementSibling.classList.contains('branch-end')) return;
+    span.addEventListener('mouseover', function() {
+      const table = this.closest('table');
+      if (!table) return;
+      // Get left paren
+      const leftParen = this.previousElementSibling;
+      if (!leftParen || !leftParen.classList.contains('branch-end')) return;
+      // Parse left paren's id for start, end
+      const id = leftParen.id;
+      if (!id) return;
+      const parts = id.split('-');
+      const start = parseInt(parts[4]);
+      const end = parseInt(parts[5]);
+      const isTrope = id.startsWith('trop-');
+      // Highlight word range
+      for (let w = start; w <= end; w++) {
+        const td = table.querySelector(`td[data-word="${w}"]`);
+        if (td) {
+          td.classList.add(isTrope ? 'highlight-trop-bright' : 'highlight-syntax-bright');
+        }
+      }
+      // Highlight mafsik
+      this.classList.add('highlight-pair');
+      // Highlight left paren
+      leftParen.classList.add('highlight-pair');
+      // Highlight right paren (paired)
+      const dirIndex = isTrope ? 6 : 8;
+      const direction = parts[dirIndex];
+      const pairDirection = direction === 'L' ? 'R' : 'L';
+      const pairParts = [...parts];
+      pairParts[dirIndex] = pairDirection;
+      const pairId = pairParts.join('-');
+      const rightParen = document.getElementById(pairId);
+      if (rightParen) {
+        rightParen.classList.add('highlight-pair');
+      }
+      // Handle overlaps
+      const overlappingWords = new Set();
+      document.querySelectorAll('.highlight-trop-bright.highlight-syntax-bright').forEach(td => {
+        overlappingWords.add(td.dataset.word);
+      });
+      overlappingWords.forEach(word => {
+        const td = table.querySelector('td[data-word="' + word + '"]');
+        if (td) {
+          td.classList.remove('highlight-trop-bright', 'highlight-syntax-bright');
+          td.classList.add('highlight-overlap');
+        }
+      });
+    });
+    span.addEventListener('mouseout', function() {
+      const table = this.closest('table');
+      if (!table) return;
+      // Get left paren
+      const leftParen = this.previousElementSibling;
+      if (!leftParen || !leftParen.classList.contains('branch-end')) return;
+      // Parse left paren's id for start, end
+      const id = leftParen.id;
+      if (!id) return;
+      const parts = id.split('-');
+      const start = parseInt(parts[4]);
+      const end = parseInt(parts[5]);
+      const isTrope = id.startsWith('trop-');
+      // Remove word highlights
+      for (let w = start; w <= end; w++) {
+        const td = table.querySelector(`td[data-word="${w}"]`);
+        if (td) {
+          td.classList.remove(isTrope ? 'highlight-trop-bright' : 'highlight-syntax-bright', 'highlight-overlap');
+        }
+      }
+      // Remove mafsik highlight
+      this.classList.remove('highlight-pair');
+      // Remove left paren highlight
+      leftParen.classList.remove('highlight-pair');
+      // Remove right paren highlight
+      const dirIndex = isTrope ? 6 : 8;
+      const direction = parts[dirIndex];
+      const pairDirection = direction === 'L' ? 'R' : 'L';
+      const pairParts = [...parts];
+      pairParts[dirIndex] = pairDirection;
+      const pairId = pairParts.join('-');
+      const rightParen = document.getElementById(pairId);
+      if (rightParen) {
+        rightParen.classList.remove('highlight-pair');
       }
     });
   });
