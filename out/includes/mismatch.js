@@ -324,6 +324,18 @@ document.addEventListener('DOMContentLoaded', function() {
           highlightCellRange(table, 1, startCol, 1, endCol, -4, 1.5); // borderPx=-4 for syntax
         }
 
+        // Add red borders to mismatch_data spans to match
+        if (tropSpan) {
+          tropSpan.style.border = '1.5px solid red';
+          tropSpan.style.padding = '6px 2px';
+          tropSpan.style.display = 'inline-block';
+        }
+        if (syntaxSpan) {
+          syntaxSpan.style.border = '1.5px solid red';
+          syntaxSpan.style.padding = '0px';
+          syntaxSpan.style.display = 'inline-block';
+        }
+
         observer.unobserve(table);
       }
     });
