@@ -1,0 +1,33 @@
+Summary of Session: Enhancing ^torah2 Database with BigTables for Deeper Syntax Nesting
+
+Date: January 21, 2026
+
+Overview:
+This session addressed limitations in the ^torah2 database's syntax level (slvls) structures, which were capped at 4 levels due to flat parent relationships in the original grammar_v_trop-v2.8.txt. By switching to BHSA BigTables data, we incorporated the "mother" field for accurate hierarchical nesting, enabling deeper trees (5+ levels) for complex structures like relative clauses and embedded phrases. This improves the QR project's display and analysis of Biblical Hebrew syntax.
+
+Key Issues Identified:
+- ^torah2 slvlsI entries were limited to 4 levels (e.g., "1,1,1,1"), despite Biblical Hebrew having deeper nesting.
+- Original grammar_v_trop-v2.8.txt (from Python parsers.py) used "functional_parent", which flattens hierarchies.
+- BHSA parsing treats some relative clauses as separate sentences, not embedded under NPs (e.g., in Genesis 12:1).
+- BigTables export contains "mother" (direct parent ID), "rela" (relations), and "typ" (types) for full nesting.
+
+Solutions Implemented:
+1. **Python Code Update (parsers.py)**:
+   - Modified groupby_looper2 to use "mother" instead of "functional_parent" for sent_parent_nodes.
+   - Added groupby_looper3 to yield extra fields (mother, rela, typ) per verse.
+   - New save_grammar_v_trop function outputs enhanced grammar_v_trop-v3.0.txt with additional sections appended per verse.
+
+2. **MUMPS Code Update (mkrqr6_current.int)**:
+   - Updated readin to load BigTables TSV.
+   - Modified load1 and ldSyntaxLvls to use "mother" for parentns, allowing recursive tree building with arbitrary depth.
+   - Preserved existing trop and word handling.
+
+Outcomes:
+- Deeper slvls paths (e.g., "1,2,3,4,5") for verses with complex nesting.
+- Fixed relative clause embedding in ^torah2.
+- Enhanced data for QR project enhancements (mismatch display, hover).
+
+Next Steps:
+- Run updated parsers.py on full BigTables to generate grammar_v_trop-v3.0.txt.
+- Test MUMPS code with new data for improved ^torah2.
+- If deeper nesting still missing, investigate BHSA model choices or adjust code for manual corrections.

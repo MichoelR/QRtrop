@@ -74,7 +74,7 @@ load1 ; Process one verse
  i ((bookn<26)!(bookn>28)),wrds[$c(1454) d  ; except in EMeT sefarim
  . s wrds=$tr(wrds,$c(1454),$c(1432))
  . s trops=$tr(trops,$c(1454),$c(1432)) ; we don't actually use this
- ; make sure the SOF PASUQ ($c(1475) is included
+ ; make sure the SOF PASUK ($c(1475) is included
  i $e(wrds,$l(wrds))'="׃" s wrds=wrds_"׃"
  ; okay, one word at a time through the posuk
  f k=1:1:wordCount d load2 ; process each word. One "word" can be connected by maqaf
@@ -172,7 +172,7 @@ validatePieces(inStr,pieces,wrds,wrdparts,grms2,trops,wrdns0,grmns,tropns0,paren
  ;         within the wrdparts. It would only be different if the ta'am was on an earlier wrdpart than the last.
  ;9: id. Contains metadata on the posuk, like book, chapter, and verse.
  ;
- n kk,lngrms,nn,SA,SA1,x,y
+ n kk,lngrms,nn,NO,NO1,SA,SA1,x,y
  s (wrds,wrdparts,grms2,trops,wrdns0,grmns,tropns0,parentns,id)=""
  f nn=1:1:9 d  q:errf
  . s y=$p(inStr,t,nn)
@@ -191,6 +191,8 @@ validatePieces(inStr,pieces,wrds,wrdparts,grms2,trops,wrdns0,grmns,tropns0,paren
  ; shorten sentence_atom terms and make them upper-case: only otype='word' leaf nodes should be lower-case.
  s SA="sentence",SA1="SENT"
  f k=1:1:$l(grms2,c) i $p(grms2,c,k)=SA s $p(grms2,c,k)=SA1
+ s NO="subs",NO1="noun"
+ f k=1:1:$l(grms2,c) i $p(grms2,c,k)=NO s $p(grms2,c,k)=NO1
  ;
  s lngrms=0 f kk=1:1:$l(grms2,c) d
  . s z=+$p(parentns,c,kk),$p(parentns,c,kk)=z ; turn into integer (7.0 --> 7), get rid of NaN --> 0
@@ -293,8 +295,8 @@ ldNode(k,kk,lvl,psk,tlvls,tlvlsI) ; add new data to tlvls and tlvlsI for this no
  q
  ;
 getWordLvl(bookn,versen,k,tr,trE,txt,chars) ; Trope level for one word and other metadata
- n done,i,j,k2,lvl,lvl0,lvl1,PASEQ,REVIA,PASHTA,QADMA,tr0,tr1,trope
- s PASEQ=1472,REVIA=1431,PASHTA=1433,QADMA=1448
+ n done,i,j,k2,lvl,lvl0,lvl1,PASEK,REVIA,PASHTA,KADMA,tr0,tr1,trope
+ s PASEK=1472,REVIA=1431,PASHTA=1433,KADMA=1448
  s tr="",trE=""
  k trope m trope=@glb2@(bookn,versen,k,"ta'am")
  s lvl="",tr0=""
@@ -302,13 +304,13 @@ getWordLvl(bookn,versen,k,tr,trE,txt,chars) ; Trope level for one word and other
  i $d(trope("missing")) s lvl=0 q lvl ; Skip missing tropes in hierarchy
  f  s tr0=$o(trope(tr0)) q:tr0=""  q:tr0'?1N.N  d
  . q:$g(chars(tr0,"type"))'="trope"
- . q:tr0=QADMA&$d(trope(PASHTA))
+ . q:tr0=KADMA&$d(trope(PASHTA))
  . s lvl0=$g(chars(tr0,"lvl"))
- . i tr0=PASEQ d
+ . i tr0=PASEK d
  .. s done=0,lvl0=""
  .. f k2=k+1:1:psk(0) d  q:done
  ... s lvl1=$g(psk(k2,"lvl")),tr1=$g(psk(k2,"lvl","trope"))
- ... q:tr1=""  q:tr1=PASEQ
+ ... q:tr1=""  q:tr1=PASEK
  ... s done=1
  ... i tr1=REVIA s lvl0=4
  . i lvl0'="" s lvl=$s(lvl="":lvl0,1:$s(lvl<lvl0:lvl,1:lvl0))
@@ -353,13 +355,13 @@ ldSyntaxLvls(bookn,versen) ; Compute syntax tree levels for a verse using parent
  .; add our new node just below it
  . s (cnt,@node@(0))=$g(@node@(0))+1
  .; look up part in word section. kk = word #, wp = overall wrdpart #
- . d getWrdPart(grmn,bookn,versen,.kk,.wp,.txt)
+ . d getWrdPart(grmn,bookn,versen,.kk,.wp,.txt,.tag)
  .; if the part has text (for leaves), include that here too
- . i txt'="" s @node@(cnt,0,"part")=txt
+ . i txt'="" s @node@(cnt,0,"part")=txt,@node@(cnt,0,"tag")=tag
  . s @node@(cnt)=grm
  . s sbsc1=$s(sbsc="":cnt,1:sbsc_c_cnt)
  . i wp s @node@(cnt,0,"wp")=wp ; enable look up in the word section. use grmI to find kk word #.
- . i wp s slvlsI(pp)=sbsc1 ; reverse index for wrdparts to find chain of subscripts leading to this part
+ . i wp s slvlsI(wp)=sbsc1 ; reverse index for wrdparts to find chain of subscripts leading to this part
  . s slvlsI1(grmn)=sbsc1 ; temp array that includes all syntax elts
  .;
  .; also set _flat_ array fslvls for simpler queries
@@ -369,7 +371,7 @@ ldSyntaxLvls(bookn,versen) ; Compute syntax tree levels for a verse using parent
  .;  can identify first and last.
  . i wp d  ; leaf
  ..; first do the leaf itself
- .. s fslvls0(sbsc1,"first")=kk_U_wp,fslvls0(sbsc1,"last")=kk_U_wp,fslvls0(sbsc1,"txt")=txt
+ .. s fslvls0(sbsc1,"first")=kk_U_wp,fslvls0(sbsc1,"last")=kk_U_wp,fslvls0(sbsc1,"txt")=txt,fslvls0(sbsc1,"tag")=tag
  .. i sbsc f lvl=1:1:$l(sbsc,c) d  ; all its ancestors
  ... s sbsc1=$p(sbsc,c,1,lvl) ; subscript for that higher level
  ... s node=nodehdr_sbsc1_")",fslvls0(sbsc1,"grm")=@node
@@ -379,23 +381,24 @@ ldSyntaxLvls(bookn,versen) ; Compute syntax tree levels for a verse using parent
  ; now go back through temp fslvls0 and build fslvls
  s sbsc="" f  s sbsc=$o(fslvls0(sbsc)) q:sbsc=""  d
  . s lvl=$l(sbsc,c)
- . s x1=fslvls0(sbsc,"first"),x2=fslvls0(sbsc,"last"),txt=$g(fslvls0(sbsc,"txt")),grm=$g(fslvls0(sbsc,"grm"))
- . s fslvls(lvl,$p(x2,U),$p(x2,U,2))=x1_U_grm_U_txt ; level, last word, last wordpart = 1st word, 1st wordpart
+ . s x1=fslvls0(sbsc,"first"),x2=fslvls0(sbsc,"last"),txt=$g(fslvls0(sbsc,"txt")),grm=$g(fslvls0(sbsc,"grm")),tag=$g(fslvls0(sbsc,"tag"))
+ . s fslvls(lvl,$p(x2,U),$p(x2,U,2))=x1_U_grm_U_txt_U_tag ; level, last word, last wordpart = 1st word, 1st wordpart
  ;
  m @glb2@(bookn,versen,"slvls")=slvls
  m @glb2@(bookn,versen,"slvlsI")=slvlsI
  m @glb2@(bookn,versen,"fslvls")=fslvls
- Q
+ q
  ;
-getWrdPart(grmn,bookn,versen,kk,pp,txt) ; find part text
- ; last three arguments passed back by reference:
+getWrdPart(grmn,bookn,versen,kk,pp,txt,tag) ; find part text
+ ; last four arguments passed back by reference:
  ; kk is word count, pp is (overall) wrdpart count.
- ; txt is only nonnull if it's a leaf.
+ ; txt & tag are only nonnull if it's a leaf.
  n p
  s (kk,pp,txt)=""
  s p=$g(grmI1(grmn)) q:'p "" ; look up in reverse index for verse
  s kk=$p(p,c),pp=$p(p,c,2)
  s txt=@glb2@(bookn,versen,kk,"grm",pp,"part")
+ s tag=@glb2@(bookn,versen,kk,"grm",pp,"tag")
  q
  ;
 error(txt) ; Log error
@@ -403,4 +406,3 @@ error(txt) ; Log error
  s errf=1
  q
  ;
- 
