@@ -21,6 +21,7 @@ Solutions Implemented:
    - Updated readin to load BigTables TSV.
    - Modified load1 and ldSyntaxLvls to use "mother" for parentns, allowing recursive tree building with arbitrary depth.
    - Preserved existing trop and word handling.
+   **NOT NEEDED YET, reverted**
 
 Outcomes:
 - Deeper slvls paths (e.g., "1,2,3,4,5") for verses with complex nesting.

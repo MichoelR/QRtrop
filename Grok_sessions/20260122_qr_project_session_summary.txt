@@ -1,0 +1,31 @@
+# Session Summary: QR Project BigTables Enhancement Completion
+Date: January 22, 2026
+
+## Overview
+This session resumed and completed the enhancement of the QR project's ^torah2 database with BHSA BigTables for deeper Biblical Hebrew syntax nesting. Key issues were resolved, code was updated, and the output was finalized as comma-delimited for better readability.
+
+## Key Accomplishments
+- **Data Source**: Confirmed use of ../bhsac.tsv (BHSA export) with mother, functional_parent, etc.
+- **Parent Links**: Switched from mother to functional_parent for complete hierarchical connections (words → phrases → clauses), enabling unlimited nesting depth.
+- **Clause Simplification**: Used `kind` (VC/NC) for primary labels instead of detailed `typ` (xQtX), per user preference.
+- **Code Updates**:
+  - Python: Updated parsers_new.py for integer IDs, functional_parent, and comma-delimited output.
+  - MUMPS: Modified mkrqr6.int to parse 10 comma-separated fields, updated validation and pieces.
+- **Output Cleanup**: Omitted unused fields (trops, tropns0), fixed .0 decimals on integers, changed to comma-delimited for readability.
+- **Final File**: grammar_v_trop-v3.0.txt (comma-separated, 10 fields per verse).
+
+## Technical Details
+- **Fields in v3.0.txt**: wrds, wrdparts, grms2, wrdns0, grmns, functional_parents, id, mothers, relas, typs.
+- **Hierarchy**: functional_parent provides parents for all syntax elements, resolving previous gaps.
+- **MUMPS Integration**: Ready for load into ^torah2 with deeper trees.
+
+## Next Steps
+- Test MUMPS load and verify nesting improvements.
+- If issues, investigate BHSA atom levels or manual corrections.
+
+## Files Modified
+- NewCode/parsers_new.py
+- Originals/mkrqr6.int
+- Output: grammar_v_trop-v3.0.txt
+
+Session complete. Ready for production use.

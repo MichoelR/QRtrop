@@ -168,7 +168,7 @@ validatePieces(inStr,pieces,wrds,wrdparts,grms2,trops,wrdns0,grmns,tropns0,paren
  ;         match wrdparts should match the length of wrdparts.
  ;7: parentns. Similar to grmns, but this is the functional_parent field for each of the syntax pieces. So each
  ;         of these, if it exists, points to something else in grmns. This is what builds the syntax tree.
- ;8: topns0. [not used]. Similar to wrdns0, maybe exactly the same: the position of the ta'am for a word,
+ ;8: tropns0. [not used]. Similar to wrdns0, maybe exactly the same: the position of the ta'am for a word,
  ;         within the wrdparts. It would only be different if the ta'am was on an earlier wrdpart than the last.
  ;9: id. Contains metadata on the posuk, like book, chapter, and verse.
  ;

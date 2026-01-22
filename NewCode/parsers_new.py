@@ -140,25 +140,28 @@ def groupby_looper3(bhsac_df):
 
         for i, row in verse.iterrows():
             # Grammar with extras
-            sent_mother.append(row.mother)
-            sent_rela.append(row.rela)
-            sent_typ.append(row.typ)
+            sent_mother.append(int(row.functional_parent) if pd.notna(row.functional_parent) else None)
+            sent_rela.append(row.rela if pd.notna(row.rela) else None)
+            sent_typ.append(row.typ if pd.notna(row.typ) else None)
             if row.otype == "clause":
-                sent_gram.append(row.rela or row.kind)
+                kind_val = row.kind if pd.notna(row.kind) else ""
+                sent_gram.append(kind_val)
                 sent_gram_nodes.append(row.n)
-                sent_parent_nodes.append(row.mother)
+                sent_parent_nodes.append(int(row.functional_parent) if pd.notna(row.functional_parent) else None)
             elif row.otype == "phrase":
-                sent_gram.append(row.typ)
+                typ_val = row.typ if pd.notna(row.typ) else ""
+                sent_gram.append(typ_val)
                 sent_gram_nodes.append(row.n)
-                sent_parent_nodes.append(row.mother)
+                sent_parent_nodes.append(int(row.functional_parent) if pd.notna(row.functional_parent) else None)
             elif row.otype == "word":
-                sent_gram.append(row.pdp)
+                pdp_val = row.pdp if pd.notna(row.pdp) else ""
+                sent_gram.append(pdp_val)
                 sent_gram_nodes.append(row.n)
-                sent_parent_nodes.append(row.mother)
+                sent_parent_nodes.append(int(row.functional_parent) if pd.notna(row.functional_parent) else None)
             elif row.otype == "sentence":
                 sent_gram.append("sentence")
                 sent_gram_nodes.append(row.n)
-                sent_parent_nodes.append(row.mother)
+                sent_parent_nodes.append(int(row.functional_parent) if pd.notna(row.functional_parent) else None)
 
             # Words and trope (unchanged)
             if row.g_word_utf8 is not np.nan:
@@ -194,16 +197,16 @@ def groupby_looper3(bhsac_df):
         sent_trope.append(chr(1475))
         sent_trope_nodes.append(verse.n.iloc[-1])
 
-        yield sent_word, sent_word_parts, sent_gram, sent_trope, sent_word_nodes, sent_gram_nodes, sent_parent_nodes, sent_trope_nodes, verse_id, sent_mother, sent_rela, sent_typ
+        yield sent_word, sent_word_parts, sent_gram, sent_word_nodes, sent_gram_nodes, sent_parent_nodes, verse_id, sent_mother, sent_rela, sent_typ
 
 
 def save_grammar_v_trop(bhsac_df, output_path="grammar_v_trop-v3.0.txt"):
     """Save enhanced grammar_v_trop with additional sections (mother, rela, typ) per verse."""
     with open(output_path, 'w', encoding='utf-8') as f:
         for data in groupby_looper3(bhsac_df):
-            sent_word, sent_word_parts, sent_gram, sent_trope, sent_word_nodes, sent_gram_nodes, sent_parent_nodes, sent_trope_nodes, verse_id, sent_mother, sent_rela, sent_typ = data
+            sent_word, sent_word_parts, sent_gram, sent_word_nodes, sent_gram_nodes, sent_parent_nodes, verse_id, sent_mother, sent_rela, sent_typ = data
             # Format like original, but add extras as additional sections
-            line = f"{' '.join(sent_word)}\t{' '.join(sent_word_parts)}\t{' '.join(sent_gram)}\t{' '.join(sent_trope)}\t{' '.join(map(str, sent_word_nodes))}\t{' '.join(map(str, sent_gram_nodes))}\t{' '.join(map(str, sent_parent_nodes))}\t{' '.join(map(str, sent_trope_nodes))}\t{verse_id.iloc[0]['book']} {verse_id.iloc[0]['chapter']} {verse_id.iloc[0]['verse']}\t{' '.join(map(str, sent_mother))}\t{' '.join(map(str, sent_rela))}\t{' '.join(map(str, sent_typ))}\n"
+            line = f"{' '.join(sent_word)},{' '.join(sent_word_parts)},{' '.join(sent_gram)},{' '.join(map(str, sent_word_nodes))},{' '.join(map(str, sent_gram_nodes))},{' '.join(map(str, sent_parent_nodes))},{verse_id.iloc[0]['book']} {verse_id.iloc[0]['chapter']} {verse_id.iloc[0]['verse']},{' '.join(map(str, sent_mother))},{' '.join(map(str, sent_rela))},{' '.join(map(str, sent_typ))}\n"
             f.write(line)
 
 
@@ -369,6 +372,6 @@ def build_transformer_data(input_characters, target_characters, input_texts, tar
 
 
 if __name__ == "__main__":
-    path = "data/bhsac.tsv"  # Update to BigTables path
-    bhsac_df = pd.read_csv(path, sep="\t")
+    path = "../bhsac.tsv"  # BigTables path
+    bhsac_df = pd.read_csv(path, sep="\t", low_memory=True)
     save_grammar_v_trop(bhsac_df)  # Save enhanced version
