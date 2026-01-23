@@ -13,7 +13,7 @@ fullload ; Main entry point
  ;
 readin ; Load BHSA file
  n filenm
- s filenm="grammar_v_trop-v2.8.txt" d readin1
+ s filenm="grammar_v_trop-v3.0.txt" d readin1
  q
 readin1 ; Read single file
  n mkr,subpath
@@ -25,9 +25,9 @@ readin1 ; Read single file
 load0 ; Parse into ^torah2
  n bookE,bookL,bookn,c,chars,glb0,glb2,ii,jj,lvlI,nn,pieces,sefer,syntax,syntaxI,t,x
  n i,j,curBook,vcnt,pidx
- s t=$c(9),c=",",b1="[",b2="]",q1="'",U="^"
+ s t=$c(9),c=",",sp=" ",b1="[",b2="]",q1="'",U="^"
  s nn=0
- f xx="wrds","wrdparts","grms2","trops","wrdns0","grmns","parentns","tropns0","id" s nn=nn+1,pieces(nn)=xx
+ f xx="wrds","wrdparts","grms2","wrdns0","grmns","functionalParents","id","mothers","relas","typs" s nn=nn+1,pieces(nn)=xx
  m chars=^mkr4("chars") m syntax=^mkr4("syntax")
  m syntaxI=syntax(0,"I") m lvlI=syntax(0,"lvlI")
  s glb0="^mkr1(""grm0"")",glb2="^mkr1(""grm"")"
@@ -42,13 +42,13 @@ load0 ; Parse into ^torah2
 load1 ; Process one verse
  n bookE,bookL,bookn,chap,chapp,curBook,errf,grmI,grmI1,grms,grmns,grms2,id,j,k,multf,nn
  n section,pos,SA,SA1,slvls,trops,tropes,tropns,tropns0,trops2,tropeName,tropePos
- n uniCode,verse,wrds,wrdns,wrdns0,y,parentns,pstart,pnext
+ n uniCode,verse,wrds,wrdns,wrdns0,y,functionalParents,relas,typs,pstart,pnext
  s x=@glb0@(jj) q:x=""
  s errf=0,tropes2=""
  s pstart=0 ; counter for parts of words
- i $l(x,t)'=9 d error("Row "_jj_" has wrong number of tab pieces") q
+ i $l(x,c)'=10 d error("Row "_jj_" has wrong number of comma pieces") q
  ; see in validatePieces for nature and structure of the pieces
- d validatePieces(x,.pieces,.wrds,.wrdparts,.grms2,.trops,.wrdns0,.grmns,.tropns0,.parentns,.id) ; clean string, make sure the pieces are the right lengths
+ d validatePieces(x,.pieces,.wrds,.wrdparts,.grms2,.wrdns0,.grmns,.functionalParents,.id,.mothers,.relas,.typs) ; clean string, make sure the pieces are the right lengths
  q:errf
  d getPos(grmns,.pos) ;  create sequential position array for syntax string
  ; now convert wrdns to use positions from there rather than ids
@@ -141,14 +141,14 @@ load2 ; single word
  i k=wordCount s pidx=pnext
  q
  ;
-validatePieces(inStr,pieces,wrds,wrdparts,grms2,trops,wrdns0,grmns,tropns0,parentns,id)	; cleans and adjusts input data,
+validatePieces(inStr,pieces,wrds,wrdparts,grms2,wrdns0,grmns,functionalParents,id,mothers,relas,typs)	; cleans and adjusts input data,
  ; and makes sure that each section is the right length.
  ; pieces array is passed in by reference. All the later parameters are passed back by reference.
  ;
  ; documentation of "pieces" sections. Comes in as string x with this tab-delimited format:
  ; [piece1 tab piece2 tab ... tab piece8]
  ; Each piece is comma-delimited, in some each element has '', others not. We'll strip out ' and spaces.
- ; Output is nine elements in pieces array, pieces(1),...,pieces(9)
+ ; Output is ten elements in pieces array, pieces(1),...,pieces(10)
  ;
  ; piece descriptions
  ;1: wrds. List of words in the verse, in order. If two are connected by maqaf, so they have only one ta'am,
@@ -160,21 +160,20 @@ validatePieces(inStr,pieces,wrds,wrdparts,grms2,trops,wrdns0,grmns,tropns0,paren
  ;         of the "wrdparts" above, like "prep" "art" "subs" for the above example, but also including
  ;         higher level groupings like phrase, clause, sentence.
  ;         The number of lowest level syntaxes (otype="word"), should match the length of wrdparts.
- ;4: trops. [not used]. List of ta'amim for each of the wrds elements. Currently not carefully
- ;         sent as the same length as wrds, so we get the ta'amim from wrds directly.
- ;5: wrdns0. bhsa id for the _last_ wrdpart in each of the words in wrds, so we can use this to add wrdparts
+ ;4: wrdns0. bhsa id for the _last_ wrdpart in each of the words in wrds, so we can use this to add wrdparts
  ;         together to match each word. Length should match wrds.
- ;6: grmns. bhsa id for each of the syntaxes in grms2. Length should match grms2, and number of the ids that
+ ;5: grmns. bhsa id for each of the syntaxes in grms2. Length should match grms2, and number of the ids that
  ;         match wrdparts should match the length of wrdparts.
- ;7: parentns. Similar to grmns, but this is the functional_parent field for each of the syntax pieces. So each
+ ;6: functionalParents. Similar to grmns, but this is the functionalParent field for each of the syntax pieces. So each
  ;         of these, if it exists, points to something else in grmns. This is what builds the syntax tree.
- ;8: tropns0. [not used]. Similar to wrdns0, maybe exactly the same: the position of the ta'am for a word,
- ;         within the wrdparts. It would only be different if the ta'am was on an earlier wrdpart than the last.
- ;9: id. Contains metadata on the posuk, like book, chapter, and verse.
+ ;7: id. Contains metadata on the posuk, like book, chapter, and verse.
+ ;8: functionalParents. List of mother node IDs for each syntax element in grms2.
+ ;9: relas. List of relation types for each syntax element in grms2.
+ ;10: typs. List of type attributes for each syntax element in grms2.
  ;
  n kk,lngrms,nn,NO,NO1,SA,SA1,x,y
- s (wrds,wrdparts,grms2,trops,wrdns0,grmns,tropns0,parentns,id)=""
- f nn=1:1:9 d  q:errf
+ s (wrds,wrdparts,grms2,wrdns0,grmns,functionalParents,id,mothers,relas,typs)=""
+ f nn=1:1:10 d  q:errf
  . s y=$p(inStr,t,nn)
  . ; Normalize Unicode quotes to ASCII
  . s y=$tr(y,$c(8216,8217,8220,8221),$c(39,39,34,34))
@@ -186,7 +185,7 @@ validatePieces(inStr,pieces,wrds,wrdparts,grms2,trops,wrdns0,grmns,tropns0,paren
  ; okay, check length compatibility
  i $l(wrds,c)'=$l(wrdns0,c) d error("Row "_jj_", length of wrds '= length of wrdns0: "_wrds_"|"_wrdns0) q
  i $l(grms2,c)'=$l(grmns,c) d error("Row "_jj_", length of grms2 '= length of grmns: "_grms2_"|"_grmns) q
- i $l(parentns,c)'=$l(grmns,c) d error("Row "_jj_", length of parentns '= length of grmns: "_parentns_"|"_grmns) q
+ i $l(functionalParents,c)'=$l(grmns,c) d error("Row "_jj_", length of functionalParents '= length of grmns: "_functionalParents_"|"_grmns) q
  ;
  ; shorten sentence_atom terms and make them upper-case: only otype='word' leaf nodes should be lower-case.
  s SA="sentence",SA1="SENT"
@@ -195,7 +194,7 @@ validatePieces(inStr,pieces,wrds,wrdparts,grms2,trops,wrdns0,grmns,tropns0,paren
  f k=1:1:$l(grms2,c) i $p(grms2,c,k)=NO s $p(grms2,c,k)=NO1
  ;
  s lngrms=0 f kk=1:1:$l(grms2,c) d
- . s z=+$p(parentns,c,kk),$p(parentns,c,kk)=z ; turn into integer (7.0 --> 7), get rid of NaN --> 0
+ . s z=+$p(functionalParents,c,kk),$p(functionalParents,c,kk)=z ; turn into integer (7.0 --> 7), get rid of NaN --> 0
  . s ns=$p(grms2,c,kk) i ns'?.l q  ; not lower case
  . s lngrms=lngrms+1
  i lngrms'=$l(wrdparts,c) d error("Row "_jj_", word pieces in grms2 '= length of wrdparts: "_grms2_"|"_wrdparts) q
@@ -339,15 +338,15 @@ getBookN(bookL,bookn,bookH,bookE,section) ; Map BHSA book names to book numbers
  s bookH=^mkr4("sefer",bookn)
  q bookn
  ;
-ldSyntaxLvls(bookn,versen) ; Compute syntax tree levels for a verse using parentns, preserving nesting
- ; Input: bookn, versen (indices for ^mkr1("grm",bookn,versen); uses wrds, grms2, wrdns, grmns, parentns from load1 scope)
+ldSyntaxLvls(bookn,versen) ; Compute syntax tree levels for a verse using functionalParents, preserving nesting
+ ; Input: bookn, versen (indices for ^mkr1("grm",bookn,versen); uses wrds, grms2, wrdns, grmns, functionalParents from load1 scope)
  ; Output: Sets ^mkr1("grm",bookn,versen,"slvls",level,word)=nodeType
  ;         Sets ^mkr1("grm",bookn,versen,word,"pieceNodes")=nodeList
  n cnt,fslvls,fslvls0,grm,grmn,i,j,k,kk,lvl,node,nodehdr,parentn,piece,sbsc,sbsc1,slvls,slvlsI,slvlsI1,txt,wp
  s nodehdr="slvls(" ; we'll build the node location with this plus the index
  ; RPN, so children are on the right of parents. As we go, we store the location of the parent in the tree.
  f k=1:1:$l(grms2,c) d
- . s grm=$p(grms2,c,k),grmn=$p(grmns,c,k),parentn=$p(parentns,c,k)
+ . s grm=$p(grms2,c,k),grmn=$p(grmns,c,k),parentn=$p(functionalParents,c,k)
  . s node="slvls",sbsc=""
  . i parentn,$g(slvlsI1(parentn)) d
  .. s sbsc=slvlsI1(parentn) ; temp array, should be there already, no unrecognized parents
