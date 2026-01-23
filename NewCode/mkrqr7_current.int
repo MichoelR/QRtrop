@@ -58,7 +58,7 @@ findMismatch1(book,verse,lvl1,wrd1,lvl2,wrd2,wrdpart) ; compare two branches
 displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syntax mismatch
  ; Inputs: bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart
  ; Output: 4-row monospaced text display, all RTL
- N posuk,wrds,wrdcnt,i,j,k,level,endWord,partIdx
+ N posuk,wrds,wrdcnt,i,j,k,level,level0,endWord,partIdx
  N startWord,nodeType,part,trop,minWord,maxWord,prefix,revTrops,revSyn
  ;
  M posuk=^torah2(bookn,versen) ; all verse info
@@ -92,7 +92,9 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  .. E  d aTP(.revTrops,endWord,"L",,level,startWord,endWord,chap,verse,lvl1,wrd10,wrd1)
  ;
  ; Syntax - build list
- F level=4:-1:1 D ; sections begin and end, enclose in ( )
+ 
+ S level0=$o(posuk("fslvls",""),-1) ; deepest level reached
+ F level=level0:-1:1 D ; sections begin and end, enclose in ( )
  . s endWord="" f  s endWord=$o(posuk("fslvls",level,endWord)) q:endWord=""  D
  .. Q:endWord<minWord  ; totally off the radar
  .. s endPart="" f  s endPart=$o(posuk("fslvls",level,endWord,endPart)) q:endPart=""  D
@@ -146,7 +148,9 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  s row3="" ; build string RTL
  F i=minWord:1:maxWord D
  . S tropL=$g(revTrops(i,"L")),trop=$g(revTrops(i)),tropR=$g(revTrops(i,"R"))
- . S row3 = "<td>"_tropL_"<span class='verse-trop'>"_$zstrip(trop,"<W")_"</span>"_tropR_"</td>" _ row3
+ .; S row3 = "<td>"_tropL_"<span class='verse-trop'>"_$zstrip(trop,"<W")_"</span>"_tropR_"</td>" _ row3
+ . S tropClass="verse-trop"_$S(i=wrd1:" mismatch-pair",1:"")
+ . S row3 = "<td>"_tropL_"<span class='"_tropClass_"'>"_$zstrip(trop,"<W")_"</span>"_tropR_"</td>" _ row3
  d add(row3)
  d add("</tr>")
  ;
@@ -217,7 +221,7 @@ add(x)	;
 	;
 includeFile(filename) ;
  n file,i,inary,subpath
- s subpath="QR\QRCode\Originals\out\includes\"
+ s subpath="QR\QRCode\out\includes\"
  d readin1 ; loads inary array
  f i=1:1 q:'$d(inary(i))  d
  . d add(inary(i))

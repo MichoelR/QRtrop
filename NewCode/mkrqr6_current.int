@@ -1,7 +1,7 @@
-mkrqr6 ; mkr 04/17/2025; kriah (קריה) and trope (טעמים) - loading BHSA database ^torah2
- ; Code augmented by Grok (xAI), April 2025, for trope handling, grammatical parts, and BHSA parsing
+mkrqr6 ; mkr 04/17/2025; kriah (קריה) and trop (טעמים) - loading BHSA database ^torah2
+ ; Code augmented by Grok (xAI), April 2025, for trop handling, grammatical parts, and BHSA parsing
  ; Loads Leningrad Codex data from BHSA single file, producing ^torah2 matching ^torah
- ; Includes trope hierarchy ("lvls") and grammatical data ("grms", "grm", "slvls")
+ ; Includes trop hierarchy ("lvls") and grammatical data ("grms", "grm", "slvls")
  ;
 fullload ; Main entry point
  n glb2
@@ -41,10 +41,10 @@ load0 ; Parse into ^torah2
  q
 load1 ; Process one verse
  n bookE,bookL,bookn,chap,chapp,curBook,errf,grmI,grmI1,grms,grmns,grms2,id,j,k,multf,nn
- n section,pos,SA,SA1,slvls,trops,tropes,tropns,tropns0,trops2,tropeName,tropePos
+ n section,pos,SA,SA1,slvls,trops,trops,trops2,tropName,tropPos
  n uniCode,verse,wrds,wrdns,wrdns0,y,functionalParents,relas,typs,pstart,pnext
  s x=@glb0@(jj) q:x=""
- s errf=0,tropes2=""
+ s errf=0,trops2=""
  s pstart=0 ; counter for parts of words
  i $l(x,t)'=10 d error("Row "_jj_" has wrong number of tab pieces") q
  ; see in validatePieces for nature and structure of the pieces
@@ -53,7 +53,6 @@ load1 ; Process one verse
  d getPos(grmns,.pos) ;  create sequential position array for syntax string
  ; now convert wrdns to use positions from there rather than ids
  f k=1:1:$l(wrdns0,c) s n=$p(wrdns0,c,k),jpos=$g(pos(n)),$p(wrdns,c,k)=jpos
- f k=1:1:$l(tropns0,c) s n=$p(tropns0,c,k),jpos=$g(pos(n)),$p(tropns,c,k)=jpos
  s bookL=$p(id,c),chap=+$p(id,c,2),verse=+$p(id,c,3)
  ; Map BHSA book names to book numbers
  d getBookN(bookL,.bookn,.sefer,.bookE,.section) ; includes section=2 say for Samuel-II
@@ -67,20 +66,19 @@ load1 ; Process one verse
  . s @glb2@(i,"sefer","latin")=bookL
  s (j,vcnt)=vcnt+1 ; New total verse number, not by chapter
  s chapp=$s(section:section_" "_chap,1:chap)
- s verseText="",tropes2="",wordCount=$l(wrds,c)
+ s verseText="",trops2="",wordCount=$l(wrds,c)
  ; fix: zinor into zarqa
  ;  an old mistake in Unicode http://www.mechon-mamre.org/c/hr/unicode.htm
  ;  tsinor is actually the character used for both our tsinor and zarqa
  i ((bookn<26)!(bookn>28)),wrds[$c(1454) d  ; except in EMeT sefarim
  . s wrds=$tr(wrds,$c(1454),$c(1432))
- . s trops=$tr(trops,$c(1454),$c(1432)) ; we don't actually use this
  ; make sure the SOF PASUK ($c(1475) is included
  i $e(wrds,$l(wrds))'="׃" s wrds=wrds_"׃"
  ; okay, one word at a time through the posuk
- f k=1:1:wordCount d load2 ; process each word. One "word" can be connected by maqaf
+ f k=1:1:wordCount d load2 ; process each word. One "word" can be connected by makaf
  ;
  ; verse-level data; Store in ^torah2
- s tropes2=$e(tropes2,2,*)
+ s trops2=$e(trops2,2,*)
  s @glb2@(i,j)=verseText
  s @glb2@(i,j,0)=wordCount
  s @glb2@(i,j,"chap")=chap
@@ -88,11 +86,11 @@ load1 ; Process one verse
  s:section @glb2@(i,j,"section")=section ; 2 for Samuel-II
  s @glb2@(i,j,"verse")=verse
  s @glb2@(i,j,"swhole")=$tr(verseText,"֑֖֛֢֣֤֥֦֧֪֚֭֮֒֓֔֕֗֘֙֜֝֞֟֠֡֨֩֫֬֯׃")
- s @glb2@(i,j,"tropes")=tropes2 ; english for all trope in the verse
+ s @glb2@(i,j,"trops")=trops2 ; english for all trop in the verse
  s @glb2@(i,j,"lvllst")=""
  s @glb2@(i,j,"grms")=grms2
  m @glb2@(i,j,"grmI")=grmI
- d ldTropeLvls(i,j,.chars)
+ d ldTropLvls(i,j,.chars)
  d ldSyntaxLvls(i,j)
  s @glb2@("cvE",i,+section,chap,verse)=j
  s @glb2@("grmI2",$e(grms2,1,450),j)=""
@@ -102,20 +100,16 @@ load2 ; single word
  n p,part,parts,tag,grmPos,pnext
  s word=$p(wrds,c,k)
  s verseText=verseText_$s(k=1:"",1:" ")_word
- ; get trope by hand rather than relying on "trops" passed in
- d gettrope(word,.tropes,.multf) ; type and position in word - may be more than one per word
- ; handle missing trope
- i '$d(tropes) d
- . s @glb2@(i,j,k,"ta'am","missing")=$p(tropns,c,k) ; Store missing trope with position
- . s @glb2@("missingTropes",i,j,k)=word ; Log for review
- . ; Optional: Infer Tipeha (disabled by default)
- . i 0 d
- .. s tropes(1430)=$p(tropns,c,k),tropeName="TIPEHA",multf=0
- .. s @glb2@("missingTropes",i,j,k,"inferred")="TIPEHA"
- s uniCode="" f  s uniCode=$o(tropes(uniCode)) q:uniCode=""  d
- . s tropePos=tropes(uniCode) ; position in word
- . s tropeName=$g(chars(uniCode,"name")),tropes2=c_tropeName_tropes2
- . s @glb2@(i,j,k,"ta'am",uniCode,tropePos)=""
+ ; get trop by hand rather than relying on "trops" passed in
+ d gettrop(word,.trops,.multf) ; type and position in word - may be more than one per word
+ ; handle missing trop
+ i '$d(trops) d
+ . s @glb2@(i,j,k,"ta'am","missing")="" ; Store missing trop 
+ . s @glb2@("missingTrops",i,j,k)=word ; Log for review
+ s uniCode="" f  s uniCode=$o(trops(uniCode)) q:uniCode=""  d
+ . s tropPos=trops(uniCode) ; position in word
+ . s tropName=$g(chars(uniCode,"name")),trops2=c_tropName_trops2
+ . s @glb2@(i,j,k,"ta'am",uniCode,tropPos)=""
  i multf s @glb2@(i,j,k,"ta'am","mult")="" ; multiple
  s @glb2@(i,j,k)=word
  ; Process grammatical parts (wrdparts)
@@ -151,7 +145,7 @@ validatePieces(inStr,pieces,wrds,wrdparts,grms2,wrdns0,grmns,functionalParents,i
  ; Output is ten elements in pieces array, pieces(1),...,pieces(10)
  ;
  ; piece descriptions
- ;1: wrds. List of words in the verse, in order. If two are connected by maqaf, so they have only one ta'am,
+ ;1: wrds. List of words in the verse, in order. If two are connected by makaf, so they have only one ta'am,
  ;         they are included in a single word, like על-פני in the first verse.
  ;2: wrdparts. List of syntactical parts of the sentences, pieces of each word, in order.
  ;         Some of them can actually be empty, like בָּאָֽרֶץ contains three parts, "in" "the" "land",
@@ -167,7 +161,7 @@ validatePieces(inStr,pieces,wrds,wrdparts,grms2,wrdns0,grmns,functionalParents,i
  ;6: functionalParents. Similar to grmns, but this is the functionalParent field for each of the syntax pieces. So each
  ;         of these, if it exists, points to something else in grmns. This is what builds the syntax tree.
  ;7: id. Contains metadata on the posuk, like book, chapter, and verse.
- ;8: functionalParents. List of mother node IDs for each syntax element in grms2.
+ ;8: mothers. List of mother node IDs for each syntax element in grms2.
  ;9: relas. List of relation types for each syntax element in grms2.
  ;10: typs. List of type attributes for each syntax element in grms2.
  ;
@@ -186,6 +180,9 @@ validatePieces(inStr,pieces,wrds,wrdparts,grms2,wrdns0,grmns,functionalParents,i
  i $l(wrds,c)'=$l(wrdns0,c) d error("Row "_jj_", length of wrds '= length of wrdns0: "_wrds_"|"_wrdns0) q
  i $l(grms2,c)'=$l(grmns,c) d error("Row "_jj_", length of grms2 '= length of grmns: "_grms2_"|"_grmns) q
  i $l(functionalParents,c)'=$l(grmns,c) d error("Row "_jj_", length of functionalParents '= length of grmns: "_functionalParents_"|"_grmns) q
+ i $l(mothers,c)'=$l(grmns,c) d error("Row "_jj_", length of mothers '= length of grmns: "_mothers_"|"_grmns) q
+ i $l(relas,c)'=$l(grmns,c) d error("Row "_jj_", length of relas '= length of grmns: "_relas_"|"_grmns) q
+ i $l(typs,c)'=$l(grmns,c) d error("Row "_jj_", length of typs '= length of grmns: "_typs_"|"_grmns) q
  ;
  ; shorten sentence_atom terms and make them upper-case: only otype='word' leaf nodes should be lower-case.
  s SA="sentence",SA1="SENT"
@@ -200,39 +197,39 @@ validatePieces(inStr,pieces,wrds,wrdparts,grms2,wrdns0,grmns,functionalParents,i
  i lngrms'=$l(wrdparts,c) d error("Row "_jj_", word pieces in grms2 '= length of wrdparts: "_grms2_"|"_wrdparts) q
  q
  ;
-gettrope(word,tropes,multf) ; finds type and position of trope in word, array returned by reference
- ; all trope are Unicode between U+0591 and U+05AE (U+#1425 through U+#1454),
+gettrop(word,trops,multf) ; finds type and position of trop in word, array returned by reference
+ ; all trop are Unicode between U+0591 and U+05AE (U+#1425 through U+#1454),
  ;  or sof pasuk = 05C3 = #1475 and paseq = 05C0 = #1472 ("|")
  ; mkr 12/02/20 - we also need to deal with וּשְׁתַּ֨יִם֙, qadma and pashta on one word -
  ;  and only the pashta is real. pashta = #1433, qadma = #1448
- ; mkr 04/21/25 - might also need to deal with other doubled trope, in some printings?
+ ; mkr 04/21/25 - might also need to deal with other doubled trop, in some printings?
  n cnt,char,mm,ln,uni
- k tropes
+ k trops
  s cnt=0
  s ln=$l(word)
- f mm=1:1:ln d  ; skip everything but trope
+ f mm=1:1:ln d  ; skip everything but trop
  . s char=$e(word,mm),uni=$a(char)
  . q:uni<1425  q:(uni>1454)&(uni'=1475)&(uni'=1472)
  . ; get rid of qadma if there's a pashta (which is always last)
  . i uni=1433 d
- .. i $d(tropes(1448)) k tropes(1448) s cnt=cnt-1
- .. i $d(tropes(1433)) k tropes(1433) s cnt=cnt-1 ; just in case there were two pashtas instead
- . s tropes(uni)=mm,cnt=cnt+1
+ .. i $d(trops(1448)) k trops(1448) s cnt=cnt-1
+ .. i $d(trops(1433)) k trops(1433) s cnt=cnt-1 ; just in case there were two pashtas instead
+ . s trops(uni)=mm,cnt=cnt+1
  s multf=(cnt>1)
  q
  ;
-ldTropeLvls(bookn,versen,chars) ; Compute trope hierarchy
- n done,found,i,j,k,kk,k2,k3,lvl,lvls,lvl2,node,nodehdr,psk,sbsc,tlvls,tlvlsI,trh,tropes,txt
+ldTropLvls(bookn,versen,chars) ; Compute trop hierarchy
+ n done,found,i,j,k,kk,k2,k3,lvl,lvls,lvl2,node,nodehdr,psk,sbsc,tlvls,tlvlsI,trh,trops,txt
  k psk,lvls,trh
  s psk(0)=@glb2@(bookn,versen,0)
- s tropes=""
+ s trops=""
  f k=1:1:psk(0) d
  . s lvl=$$getWordLvl(bookn,versen,k,.tr,.trE,.txt,.chars)
  . s psk(k,"lvl")=lvl
- . i lvl'="" s psk(k,"lvl","trope")=trE
- . s psk(k,"trope2")=trE ; save regardless
+ . i lvl'="" s psk(k,"lvl","trop")=trE
+ . s psk(k,"trop2")=trE ; save regardless
  . s psk(k,"txt")=txt
- . s tropes=tropes_$s(tropes="":"",1:",")_trE
+ . s trops=trops_$s(trops="":"",1:",")_trE
  f k=psk(0):-1:1 d
  . s lvl=$g(psk(k,"lvl"))
  . i lvl'="" s lvls(lvl,k)=""
@@ -247,8 +244,8 @@ ldTropeLvls(bookn,versen,chars) ; Compute trope hierarchy
  .. s @glb2@(bookn,versen,k,"realmend",lvl)=k2
  .. s lvls(lvl,k)=k2
  .. s @glb2@(bookn,versen,k2,"realmstart",lvl)=""
- .. s tropesHere=$p(tropes,",",psk(0)-k+1,psk(0)-k2+1)
- .. s @glb2@(bookn,versen,k,"trH")=tropesHere
+ .. s tropsHere=$p(trops,",",psk(0)-k+1,psk(0)-k2+1)
+ .. s @glb2@(bookn,versen,k,"trH")=tropsHere
  m @glb2@(bookn,versen,"lvls")=lvls
  ; okay, now build a bigger structure than lvls with everything included.
  ; the top node of a realm is the trop of the last word in the realm.
@@ -289,26 +286,26 @@ ldNode(k,kk,lvl,psk,tlvls,tlvlsI) ; add new data to tlvls and tlvlsI for this no
  s @node@(cnt)=psk(k,"txt")
  s @node@(cnt,0,"k")=k
  i lvl s @node@(cnt,0,"lvl")=lvl ; משרתים will have lvl=0
- s @node@(cnt,0,"trope")=psk(k,"trope2")
+ s @node@(cnt,0,"trop")=psk(k,"trop2")
  s tlvlsI(k)=$s(sbsc="":cnt,1:sbsc_c_cnt) ; reverse index to find chain of subscripts leading to this part
  q
  ;
-getWordLvl(bookn,versen,k,tr,trE,txt,chars) ; Trope level for one word and other metadata
- n done,i,j,k2,lvl,lvl0,lvl1,PASEK,REVIA,PASHTA,KADMA,tr0,tr1,trope
+getWordLvl(bookn,versen,k,tr,trE,txt,chars) ; Trop level for one word and other metadata
+ n done,i,j,k2,lvl,lvl0,lvl1,PASEK,REVIA,PASHTA,KADMA,tr0,tr1,trop
  s PASEK=1472,REVIA=1431,PASHTA=1433,KADMA=1448
  s tr="",trE=""
- k trope m trope=@glb2@(bookn,versen,k,"ta'am")
+ k trop m trop=@glb2@(bookn,versen,k,"ta'am")
  s lvl="",tr0=""
  s txt=@glb2@(bookn,versen,k)
- i $d(trope("missing")) s lvl=0 q lvl ; Skip missing tropes in hierarchy
- f  s tr0=$o(trope(tr0)) q:tr0=""  q:tr0'?1N.N  d
- . q:$g(chars(tr0,"type"))'="trope"
- . q:tr0=KADMA&$d(trope(PASHTA))
+ i $d(trop("missing")) s lvl=0 q lvl ; Skip missing trops in hierarchy
+ f  s tr0=$o(trop(tr0)) q:tr0=""  q:tr0'?1N.N  d
+ . q:$g(chars(tr0,"type"))'="trop"
+ . q:tr0=KADMA&$d(trop(PASHTA))
  . s lvl0=$g(chars(tr0,"lvl"))
  . i tr0=PASEK d
  .. s done=0,lvl0=""
  .. f k2=k+1:1:psk(0) d  q:done
- ... s lvl1=$g(psk(k2,"lvl")),tr1=$g(psk(k2,"lvl","trope"))
+ ... s lvl1=$g(psk(k2,"lvl")),tr1=$g(psk(k2,"lvl","trop"))
  ... q:tr1=""  q:tr1=PASEK
  ... s done=1
  ... i tr1=REVIA s lvl0=4
@@ -342,12 +339,14 @@ ldSyntaxLvls(bookn,versen) ; Compute syntax tree levels for a verse using functi
  ; Input: bookn, versen (indices for ^mkr1("grm",bookn,versen); uses wrds, grms2, wrdns, grmns, functionalParents from load1 scope)
  ; Output: Sets ^mkr1("grm",bookn,versen,"slvls",level,word)=nodeType
  ;         Sets ^mkr1("grm",bookn,versen,word,"pieceNodes")=nodeList
- n cnt,fslvls,fslvls0,grm,grmn,i,j,k,kk,lvl,node,nodehdr,parentn,piece,sbsc,sbsc1,slvls,slvlsI,slvlsI1,txt,wp
+ n cnt,fslvls,fslvls0,grm,grmn,i,j,k,kk,lvl,mothern,node,nodehdr,parentn,piece,sbsc,sbsc1,slvls,slvlsI,slvlsI1,txt,wp
  s nodehdr="slvls(" ; we'll build the node location with this plus the index
  ; RPN, so children are on the right of parents. As we go, we store the location of the parent in the tree.
+ ; If "mother" is available, that's going to be a better place lower down to attach the current tree, so use it.
  f k=1:1:$l(grms2,c) d
- . s grm=$p(grms2,c,k),grmn=$p(grmns,c,k),parentn=$p(functionalParents,c,k)
+ . s grm=$p(grms2,c,k),grmn=$p(grmns,c,k),parentn=$p(functionalParents,c,k),mothern=$p(mothers,c,k)
  . s node="slvls",sbsc=""
+ . i mothern s parentn=mothern ; use it where available
  . i parentn,$g(slvlsI1(parentn)) d
  .. s sbsc=slvlsI1(parentn) ; temp array, should be there already, no unrecognized parents
  .. s node=nodehdr_sbsc_")" ; location of parent, like "slvls(1,2)"
