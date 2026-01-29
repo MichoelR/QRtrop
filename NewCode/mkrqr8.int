@@ -27,7 +27,7 @@ generateAllVerses ; Generate output for all verses in ^torah2 with optional mism
  . s txt=txt_"  containers.forEach(container => {"
  . s txt=txt_"    const chap = container.getAttribute('data-chap');"
  . s txt=txt_"    const verse = container.getAttribute('data-verse');"
- . s txt=txt_"    if (container.querySelector('input[type=\"radio\"][name=\"mismatch-select-' + chap + '-' + verse + '\"]')) {"
+ . s txt=txt_"    if (container.querySelector('input[type=""radio""][name=""mismatch-select-' + chap + '-' + verse + '""]')) {"
  . s txt=txt_"      highlightWordRange(null, chap, verse);"
  . s txt=txt_"    }"
  . s txt=txt_"  });"
