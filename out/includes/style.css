@@ -38,43 +38,10 @@ td {border: 1px solid black; padding: 5px; text-align: right; white-space: nowra
 .mismatch_data {
   margin-bottom: 10px;
   font-weight: bold;
-  direction: rtl;
-  text-align: right;
-  width: 100%;
-  unicode-bidi: embed;
 }
 
-.mismatch_data span {
-  unicode-bidi: embed;
-}
-
-.english-text {
-  direction: ltr;
-  display: inline-block;
-}
-
-.hebrew-text {
-  direction: rtl;
-  display: inline-block;
-}
-
-.verse-container {
-  direction: rtl;
-  text-align: right;
-  width: 100%;
-  margin-bottom: 10px;
-}
-
-/* Styles for mismatch tables to align right for RTL text */
-.table-container {
-  direction: rtl;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  width: 100%;
-}
-
-.segment-table {
+/* Styles for mismatch tables to align right */
+.mismatch-table {
   margin-left: auto;
   margin-right: 0;
   position: relative;
