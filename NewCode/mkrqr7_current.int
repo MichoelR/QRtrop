@@ -17,7 +17,7 @@ findMismatch ; Find mismatches between trop (lvls) and syntax (fslvls) trees in 
  . s sefer1=$$zconvert^mkrutl(sefer,"O","UTF8")
  . S bookName=sefarim(bookn,"eng") ; Map bookn to name
  . d includeFile("header.html")
- . f versen=1:1 q:'$d(^torah2(bookn,versen))  d findMismatchVerse(bookn,versen)
+ . f versen=1:1 q:'$d(^torah2(bookn,versen))  d generateVerseOutput(bookn,versen)
  . d includeFile("footer.html")
  . d writeout^mkrqr1(bookn,glb1,"findMismatch"_bookName,"QRCode\outMismatch","html") ; output to file
  . k @glb1
