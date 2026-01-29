@@ -1,7 +1,7 @@
 mkrqr7	; mkr 07/31/2025; kriah (קריה), trop (טעמים), and syntax - various queries
 	;
 	;
-findMismatch ; Find mismatches between trop (lvls) and syntax (fslvls) trees in ^torah2
+generateAllVerses ; Generate output for all verses in ^torah2 with optional mismatch highlighting
  n bookName,chars,glb0,glb1,NONLETTERS,sefer,sefarim
  ;
  s U="^",P="|",sp=" "
@@ -17,14 +17,15 @@ findMismatch ; Find mismatches between trop (lvls) and syntax (fslvls) trees in 
  . s sefer1=$$zconvert^mkrutl(sefer,"O","UTF8")
  . S bookName=sefarim(bookn,"eng") ; Map bookn to name
  . d includeFile("header.html")
- . f versen=1:1 q:'$d(^torah2(bookn,versen))  d findMismatchVerse(bookn,versen)
+ . f versen=1:1 q:'$d(^torah2(bookn,versen))  d generateVerseOutput(bookn,versen)
  . d includeFile("footer.html")
- . d writeout^mkrqr1(bookn,glb1,"findMismatch"_bookName,"QRCode\out","html") ; output to file
+ . d writeout^mkrqr1(bookn,glb1,"allVerses"_bookName,"QRCode\out","html") ; output to file
  . k @glb1
  q
  ;
-findMismatchVerse(bookn,versen) ; Find mismatches for a specific verse
+generateVerseOutput(bookn,versen) ; Generate output for a specific verse, including all words and mismatches if any
  n lvls,fslvls,lvl1,wrd1,lvl2,wrd2,wrdpart,posuk
+  n mismatches,mismatchCnt,mismatchIdx
  ;
  M posuk=^torah2(bookn,versen) ; all verse info
  ; Get lvls (trop levels)
@@ -33,15 +34,23 @@ findMismatchVerse(bookn,versen) ; Find mismatches for a specific verse
  ; Get fslvls (syntax levels)
  m fslvls=posuk("fslvls")
  ;
+  ; Initialize mismatch counter and storage
+  S mismatchCnt=0
+  K mismatches
+
+  ; Collect mismatches for this verse
  s lvl1="" f  s lvl1=$o(lvls(lvl1)) q:lvl1=""  d  ; trop
  . s wrd1="" f  s wrd1=$o(lvls(lvl1,wrd1)) q:wrd1=""  d
  .. s lvl2="" f  s lvl2=$o(fslvls(lvl2)) q:lvl2=""  d  ; syntax
  ... s wrd2="" f  s wrd2=$o(fslvls(lvl2,wrd2)) q:wrd2=""  d
  .... s wrdpart="" f  s wrdpart=$o(fslvls(lvl2,wrd2,wrdpart)) q:wrdpart=""  d
- ..... d findMismatch1(bookn,versen,lvl1,wrd1,lvl2,wrd2,wrdpart)
+ ..... d checkMismatch(bookn,versen,lvl1,wrd1,lvl2,wrd2,wrdpart,.mismatches,.mismatchCnt)
+
+ ; Generate output for the verse
+ d displayVerse(bookn,versen,.mismatches,mismatchCnt)
  q
  ;
-findMismatch1(book,verse,lvl1,wrd1,lvl2,wrd2,wrdpart) ; compare two branches
+checkMismatch(book,verse,lvl1,wrd1,lvl2,wrd2,wrdpart,mismatches,mismatchCnt) ; compare two branches and store mismatches
  n prod,wrd10,wrd20,x,foundf
  ; wrd1 and wrd2 are the _last_ words in the branch
  s wrd10=lvls(lvl1,wrd1) ; first word in the branch
@@ -52,28 +61,23 @@ findMismatch1(book,verse,lvl1,wrd1,lvl2,wrd2,wrdpart) ; compare two branches
  ; or two are equal and the other two are on different sides
  i prod=0,wrd2=wrd10,((wrd1-wrd2)*(wrd20-wrd2))<0 s foundf=2
  i prod=0,wrd20=wrd1,((wrd10-wrd1)*(wrd2-wrd1))<0 s foundf=3
- i foundf d displayMismatch(book,verse,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2)
+ i foundf d
+ . S mismatchCnt=mismatchCnt+1
+ . S mismatches(mismatchCnt)=lvl1_"^"_wrd10_"^"_wrd1_"^"_lvl2_"^"_wrd20_"^"_wrd2
  q
  ;
-displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syntax mismatch
+displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words and optional mismatches
  ; Inputs: bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart
  ; Output: 4-row monospaced text display, all RTL
  N posuk,wrds,wrdcnt,i,j,k,level,level0,endWord,partIdx
- N startWord,nodeType,part,trop,minWord,maxWord,prefix,revTrops,revSyn,mismatchCnt
+ N startWord,nodeType,part,trop,minWord,maxWord,prefix,revTrops,revSyn,mismatchIdx
  ;
  M posuk=^torah2(bookn,versen) ; all verse info
  ; Get verse data
  S wrds=posuk,wrdcnt=posuk(0),chap=posuk("chap"),verse=posuk("verse")
  ;
- ; Increment mismatch counter for this verse to ensure unique IDs
- S mismatchCnt=$G(posuk("mismatchCnt"))+1
- S posuk("mismatchCnt")=mismatchCnt
- ;
- S minWord=$S(wrd10<wrd20:wrd10,1:wrd20),maxWord=$S(wrd1>wrd2:wrd1,1:wrd2)
- I minWord>wrd1 S minWord=wrd1
- I minWord>wrd2 S minWord=wrd2
- I maxWord<wrd10 S maxWord=wrd10
- I maxWord<wrd20 S maxWord=wrd20
+ ; Set minWord and maxWord to cover the entire verse
+ S minWord=1,maxWord=wrdcnt
  ;
  ; Prepare trops and syntax for the range,
  ;  adding brackets for the sections and sub-sections
@@ -96,7 +100,7 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  .. E  d aTP(.revTrops,endWord,"L",,level,startWord,endWord,chap,verse,lvl1,wrd10,wrd1,mismatchCnt)
  ;
  ; Syntax - build list
- 
+
  S level0=$o(posuk("fslvls",""),-1) ; deepest level reached
  F level=level0:-1:1 D ; sections begin and end, enclose in ( )
  . s endWord="" f  s endWord=$o(posuk("fslvls",level,endWord)) q:endWord=""  D
@@ -122,20 +126,19 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  ;
  d add("<div class='verse-container'>")
  ;
- s txt=wrds
- i wrd10<wrd20 d
- . s x1=$p(txt,sp,1,wrd10-1),x2=$p(txt,sp,wrd10,wrd20-1),x3=$p(txt,sp,wrd20,wrd1),x4=$p(txt,sp,wrd1+1,wrd2),x5=$p(txt,sp,wrd2+1,999)
- . s prefix=$g(x1)_" <span class='verse-trop'> "_$g(x2)_"</span><span class='verse-trop-syntax'> "_$g(x3)_"</span><span class='verse-syntax'> "_$g(x4)_"</span> "_$g(x5)
- e  d  ; wrd20<wrd10
- . s x1=$p(txt,sp,1,wrd20-1),x2=$p(txt,sp,wrd20,wrd10-1),x3=$p(txt,sp,wrd10,wrd2),x4=$p(txt,sp,wrd2+1,wrd1),x5=$p(txt,sp,wrd1+1,999)
- . s prefix=$g(x1)_" <span class='verse-syntax'> "_$g(x2)_"</span><span class='verse-trop-syntax'> "_$g(x3)_"</span><span class='verse-trop'> "_$g(x4)_"</span> "_$g(x5)
- d add("B'reishis "_chap_":"_verse_" "_$$zconvert^mkrutl(prefix,"O","UTF8"))
- ; Row 1a: mismatch info
- s txt="<div class='mismatch_data'>Mismatch: trop branch words "_wrd10_" - "_wrd1_", "
- s txt=txt_"<span class='verse-trop' data-words='"_wrd10_"-"_wrd1_"'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
- s txt=txt_". Syntax branch words "_wrd20_" - "_wrd2_", "
- s txt=txt_"<span class='verse-syntax' data-words='"_wrd20_"-"_wrd2_"'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</div>"
- d add($$zconvert^mkrutl(txt,"O","UTF8"))
+ s txt="B'reishis "_chap_":"_verse_" "_$$zconvert^mkrutl(wrds,"O","UTF8")
+ d add(txt)
+ ; Mismatch selection if any
+ i mismatchCnt>0 d
+ . s txt="<div class='mismatch-selector'>Select Mismatch: <select id='mismatch-select-"_chap_"-"_verse_"'>"
+ . f mismatchIdx=1:1:mismatchCnt d
+ .. s mismatchData=mismatches(mismatchIdx)
+ .. s lvl1=$p(mismatchData,"^",1),wrd10=$p(mismatchData,"^",2),wrd1=$p(mismatchData,"^",3)
+ .. s lvl2=$p(mismatchData,"^",4),wrd20=$p(mismatchData,"^",5),wrd2=$p(mismatchData,"^",6)
+ .. s selected=$s(mismatchIdx=1:" selected",1:"")
+ .. s txt=txt_"<option value='"_mismatchIdx_"' data-trop='"_wrd10_"-"_wrd1_"' data-syntax='"_wrd20_"-"_wrd2_"' "_selected_">Mismatch "_mismatchIdx_": Trop "_wrd10_"-"_wrd1_", Syntax "_wrd20_"-"_wrd2_"</option>"
+ . s txt=txt_"</select></div>"
+ . d add(txt)
  ;
  d add("<div class='table-container'>")
  ; Determine how many words per segment dynamically based on total words and syntax complexity
@@ -162,26 +165,38 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  . S segmentCount=segmentCount+1
  . d add("<table class='segment-table' data-segment='"_segmentCount_"'>")
  . 
- . ; Row: Words
+ . ; Row 1: Words
  . d add("<tr>")
  . s rowWords=""
  . F i=segmentStart:-1:segmentEnd D
  .. S word=posuk(i) ; number of characters
- .. S rowWords = rowWords _ "<td data-word='"_i_"'>"_word_"</td>"
+ .. S class=""
+ .. i mismatchCnt>0 d
+ ... f mismatchIdx=1:1:mismatchCnt d
+ .... s mismatchData=mismatches(mismatchIdx)
+ .... s wrd10=$p(mismatchData,"^",2),wrd1=$p(mismatchData,"^",3)
+ .... s wrd20=$p(mismatchData,"^",5),wrd2=$p(mismatchData,"^",6)
+ .... i i>=wrd10,i<=wrd1 s class=$s(class="": "", 1: class_",")_"trop-mismatch-"_mismatchIdx
+ .... i i>=wrd20,i<=wrd2 s class=$s(class="": "", 1: class_",")_"syntax-mismatch-"_mismatchIdx
+ .. S rowWords = rowWords _ "<td data-word='"_i_"' class='"_class_"'>"_word_"</td>"
  . d add($$zconvert^mkrutl(rowWords,"O","UTF8"))
  . d add("</tr>")
  . 
- . ; Row: trops - build right-to-left to match word order
+ . ; Row 2: trops - build right-to-left to match word order
  . d add("<tr>")
  . s rowTrops="" ; build string right-to-left
  . F i=segmentStart:-1:segmentEnd D
- .. S tropL=$g(revTrops(i,"L")),trop=$g(revTrops(i)),tropR=$g(revTrops(i,"R"))
- .. S tropClass="verse-trop"_$S(i=wrd1:" mismatch-pair",1:"")
- .. S rowTrops = rowTrops _ "<td>"_tropL_"<span class='"_tropClass_"'>"_$zstrip(trop,"<W")_"</span>"_tropR_"</td>"
+ .. S tropL=$g(revTrops(i,"L")),trop=$g(revTrops(i)),tropR=$g(revTrops(i,"R")),tropClass="verse-trop"
+ .. i mismatchCnt>0 d
+ ... f mismatchIdx=1:1:mismatchCnt d
+ .... s mismatchData=mismatches(mismatchIdx)
+ .... s wrd10=$p(mismatchData,"^",2),wrd1=$p(mismatchData,"^",3)
+ .... i i>=wrd10,i<=wrd1 s tropClass=tropClass_" mismatch-trop-"_mismatchIdx
+ .. S rowTrops = rowTrops _ "<td><span class='"_tropClass_"'>"_tropL_$zstrip(trop,"<W")_tropR_"</span></td>"
  . d add(rowTrops)
  . d add("</tr>")
  . 
- . ; Row: Syntax
+ . ; Row 3: Syntax
  . d add("<tr>")
  . F i=segmentStart:-1:segmentEnd D  ; leaf syntax
  .. d add("<td>")
@@ -189,6 +204,11 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  ... S partTxt=""
  ... F k="L",0,"R" i $d(revSyn(i,j,k)) d  ; leaf or syntax branch ends
  .... S class=$s(k=0:"syntax-part",k="L":"branch-end",k="R":"branch-start",1:"")
+  .... i mismatchCnt>0,k'="R",k'="L" d
+  ..... f mismatchIdx=1:1:mismatchCnt d
+  ...... s mismatchData=mismatches(mismatchIdx)
+  ...... s wrd20=$p(mismatchData,"^",5),wrd2=$p(mismatchData,"^",6)
+  ...... i i>=wrd20,i<=wrd2 s class=class_" mismatch-syntax-"_mismatchIdx
  .... I k="L" F cnt=$g(revSyn(i,j,k,0)):-1:1 d  ; maybe several on one part, esp. ('s
  ..... S part=revSyn(i,j,k,cnt)
  ..... S partTxt=partTxt_part
@@ -201,8 +221,21 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  . d add("</table>")
  . S currentWord=segmentStart+1
  d add("</div>")
- d add("<br/>")
- d add("<br/>")
+ i mismatchCnt>0 d
+ . d add("<div class='mismatch-info'>")
+ . f mismatchIdx=1:1:mismatchCnt d
+ .. s mismatchData=mismatches(mismatchIdx)
+ .. s lvl1=$p(mismatchData,"^",1),wrd10=$p(mismatchData,"^",2),wrd1=$p(mismatchData,"^",3)
+ .. s lvl2=$p(mismatchData,"^",4),wrd20=$p(mismatchData,"^",5),wrd2=$p(mismatchData,"^",6)
+ .. s displayStyle=$s(mismatchIdx=1:"display: block;",1:"display: none;")
+ .. s txt="<div class='mismatch-data mismatch-"_mismatchIdx_"' style='"_displayStyle_"'>"
+ .. s txt=txt_"Mismatch "_mismatchIdx_": Trop branch words "_wrd10_" - "_wrd1_", "
+ .. s txt=txt_"<span class='verse-trop' data-words='"_wrd10_"-"_wrd1_"'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
+ .. s txt=txt_". Syntax branch words "_wrd20_" - "_wrd2_", "
+ .. s txt=txt_"<span class='verse-syntax' data-words='"_wrd20_"-"_wrd2_"'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</div>"
+ .. d add($$zconvert^mkrutl(txt,"O","UTF8"))
+ . d add("</div>")
+ d add("<br />")
  q
  ;
 getTaam(posuk,i) ; for ith word
