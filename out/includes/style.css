@@ -48,6 +48,16 @@ td {border: 1px solid black; padding: 5px; text-align: right; white-space: nowra
   unicode-bidi: embed;
 }
 
+.english-text {
+  direction: ltr;
+  display: inline-block;
+}
+
+.hebrew-text {
+  direction: rtl;
+  display: inline-block;
+}
+
 .verse-container {
   direction: rtl;
   text-align: right;

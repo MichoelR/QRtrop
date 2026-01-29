@@ -131,10 +131,10 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  . s prefix=$g(x1)_" <span class='verse-syntax'> "_$g(x2)_"</span><span class='verse-trop-syntax'> "_$g(x3)_"</span><span class='verse-trop'> "_$g(x4)_"</span> "_$g(x5)
  d add("B'reishis "_chap_":"_verse_" "_$$zconvert^mkrutl(prefix,"O","UTF8"))
  ; Row 1a: mismatch info
- s txt="<div class='mismatch_data'>Mismatch: trop branch words "_wrd10_" - "_wrd1_", "
- s txt=txt_"<span class='verse-trop' data-words='"_wrd10_"-"_wrd1_"'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
- s txt=txt_". Syntax branch words "_wrd20_" - "_wrd2_", "
- s txt=txt_"<span class='verse-syntax' data-words='"_wrd20_"-"_wrd2_"'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</div>"
+ s txt="<div class='mismatch_data'><span class='english-text'>Mismatch:</span> <span class='english-text'>trop branch words "_wrd10_" - "_wrd1_"</span>, "
+ s txt=txt_"<span class='verse-trop hebrew-text' data-words='"_wrd10_"-"_wrd1_"'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
+ s txt=txt_". <span class='english-text'>Syntax branch words "_wrd20_" - "_wrd2_"</span>, "
+ s txt=txt_"<span class='verse-syntax hebrew-text' data-words='"_wrd20_"-"_wrd2_"'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</div>"
  d add($$zconvert^mkrutl(txt,"O","UTF8"))
  ;
  d add("<div class='table-container'>")
