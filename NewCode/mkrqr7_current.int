@@ -156,7 +156,7 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  S segmentSize=$S(segmentSize<5:5,1:segmentSize) ; Ensure minimum segment size
  S currentWord=maxWord
  S segmentCount=0
- WHILE currentWord >= minWord D
+ F  Q:currentWord<minWord  D
  . S segmentStart=currentWord
  . S segmentEnd=$S(currentWord-segmentSize+1<minWord:minWord,1:currentWord-segmentSize+1)
  . S segmentCount=segmentCount+1
