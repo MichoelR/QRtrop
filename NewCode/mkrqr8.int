@@ -223,7 +223,7 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  . d add("</tr>")
  . d add("</table>")
  . S currentWord=segmentStart+1
- d add("</div>")
+ d add("</div>") ; end table-container
  i mismatchCnt>0 d
  . d add("<div class='mismatch-info'>")
  . f mismatchIdx=1:1:mismatchCnt d
@@ -238,6 +238,7 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  .. s txt=txt_"<span class='verse-syntax' data-words='"_wrd20_"-"_wrd2_"'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</div>"
  .. d add($$zconvert^mkrutl(txt,"O","UTF8"))
  . d add("</div>")
+ d add("</div>") ; end verse-container
  d add("<br />")
  q
  ;
