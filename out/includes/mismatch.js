@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const id = this.id;
       if (!id) return;
       const parts = id.split('-');
-      const start = parseInt(parts[4]);
-      const end = parseInt(parts[5]);
+      const start = parseInt(parts[5]);
+      const end = parseInt(parts[6]);
       const isTrope = id.startsWith('trop-');
       const table = span.closest('table');
       if (table) {
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
         // Highlight matching bracket
-        const dirIndex = isTrope ? 6 : 8;
+        const dirIndex = isTrope ? 7 : 9;
         const direction = parts[dirIndex];
         const pairDirection = direction === 'L' ? 'R' : 'L';
         const pairParts = [...parts];
@@ -71,8 +71,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const id = this.id;
       if (!id) return;
       const parts = id.split('-');
-      const start = parseInt(parts[4]);
-      const end = parseInt(parts[5]);
+      const start = parseInt(parts[5]);
+      const end = parseInt(parts[6]);
       const isTrope = id.startsWith('trop-');
       const table = span.closest('table');
       if (table) {
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
         // Remove highlight from matching bracket
-        const dirIndex = isTrope ? 6 : 8;
+        const dirIndex = isTrope ? 7 : 9;
         const direction = parts[dirIndex];
         const pairDirection = direction === 'L' ? 'R' : 'L';
         const pairParts = [...parts];
@@ -204,8 +204,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const id = leftParen.id;
       if (!id) return;
       const parts = id.split('-');
-      const start = parseInt(parts[4]);
-      const end = parseInt(parts[5]);
+      const start = parseInt(parts[5]);
+      const end = parseInt(parts[6]);
       const isTrope = id.startsWith('trop-');
       // Highlight word range
       for (let w = start; w <= end; w++) {
@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Highlight left paren
       leftParen.classList.add('highlight-pair');
       // Highlight right paren (paired)
-      const dirIndex = isTrope ? 6 : 8;
+      const dirIndex = isTrope ? 7 : 9;
       const direction = parts[dirIndex];
       const pairDirection = direction === 'L' ? 'R' : 'L';
       const pairParts = [...parts];
@@ -252,8 +252,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const id = leftParen.id;
       if (!id) return;
       const parts = id.split('-');
-      const start = parseInt(parts[4]);
-      const end = parseInt(parts[5]);
+      const start = parseInt(parts[5]);
+      const end = parseInt(parts[6]);
       const isTrope = id.startsWith('trop-');
       // Remove word highlights
       for (let w = start; w <= end; w++) {
@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Remove left paren highlight
       leftParen.classList.remove('highlight-pair');
       // Remove right paren highlight
-      const dirIndex = isTrope ? 6 : 8;
+      const dirIndex = isTrope ? 7 : 9;
       const direction = parts[dirIndex];
       const pairDirection = direction === 'L' ? 'R' : 'L';
       const pairParts = [...parts];
