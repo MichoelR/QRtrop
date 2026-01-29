@@ -465,3 +465,98 @@ function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, b
   table.style.overflow = 'visible';
   table.appendChild(highlight);
 }
+function highlightRangeAcrossTables(container, startWord, endWord, color) {
+  const tables = Array.from(container.querySelectorAll('.segment-table'));
+  if (!tables.length) return;
+
+  // Find the tables that contain the start and end words
+  let startTable = null, endTable = null;
+  let startCell = null, endCell = null;
+
+  tables.forEach(table => {
+    const cells = Array.from(table.rows[0].cells);
+    cells.forEach(cell => {
+      const wordNum = parseInt(cell.getAttribute('data-word'));
+      if (wordNum === startWord) {
+        startTable = table;
+        startCell = cell;
+      }
+      if (wordNum === endWord) {
+        endTable = table;
+        endCell = cell;
+      }
+    });
+  });
+
+  if (!startTable || !endTable) return;
+
+  // Determine if it's a single table or multiple tables
+  if (startTable === endTable) {
+    const startCol = Array.from(startTable.rows[0].cells).indexOf(startCell);
+    const endCol = Array.from(endTable.rows[0].cells).indexOf(endCell);
+    highlightCellRange(startTable, 1, startCol + 1, 1, endCol + 1, 3, 1, color, 'single');
+  } else {
+    // Multi-table highlight
+    const startTableIndex = tables.indexOf(startTable);
+    const endTableIndex = tables.indexOf(endTable);
+    const isRTL = window.getComputedStyle(container).direction === 'rtl';
+    const direction = isRTL ? -1 : 1;
+    const startIdx = isRTL ? endTableIndex : startTableIndex;
+    const endIdx = isRTL ? startTableIndex : endTableIndex;
+
+    for (let i = startIdx; i <= endIdx; i += direction) {
+      const table = tables[i];
+      const cells = Array.from(table.rows[0].cells);
+      let startCol = 0;
+      let endCol = cells.length - 1;
+      let position = 'middle';
+
+      if (i === startTableIndex) {
+        startCol = Array.from(startTable.rows[0].cells).indexOf(startCell);
+        position = 'start';
+      }
+      if (i === endTableIndex) {
+        endCol = Array.from(endTable.rows[0].cells).indexOf(endCell);
+        position = i === startTableIndex ? 'single' : 'end';
+      }
+
+      // Adjust for RTL: swap start and end if RTL
+      if (isRTL) {
+        [startCol, endCol] = [endCol, startCol];
+        if (position === 'start') position = 'end';
+        else if (position === 'end') position = 'start';
+      }
+
+      highlightCellRange(table, 1, startCol + 1, 1, endCol + 1, 3, 1, color, position);
+    }
+  }
+}
+
+function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, borderPx = 3, borderThickPx = 1, color = 'red', position = 'single') {
+  // Remove any existing highlights to prevent duplicates
+  const existingHighlights = table.querySelectorAll('.cell-highlight-' + (color === 'orange' ? 'trop' : 'syntax'));
+  existingHighlights.forEach(h => h.remove());
+
+  const rect = table.getBoundingClientRect();
+  const rowStarts = Array.from(table.rows).slice(startRow - 1, endRow);
+  const firstCell = rowStarts[0] && rowStarts[0].cells[startCol - 1];
+  const lastCell = rowStarts[rowStarts.length - 1] && rowStarts[rowStarts.length - 1].cells[endCol - 1];
+
+  if (!firstCell || !lastCell) return;
+
+  const firstRect = firstCell.getBoundingClientRect();
+  const lastRect = lastCell.getBoundingClientRect();
+
+  const left = firstRect.left - rect.left - borderPx;
+  const top = firstRect.top - rect.top - borderPx;
+  const width = lastRect.right - firstRect.left + borderPx * 2;
+  const height = lastRect.bottom - firstRect.top + borderPx * 2;
+
+  const highlight = document.createElement('div');
+  highlight.className = 'cell-highlight cell-highlight-' + (color === 'orange' ? 'trop' : 'syntax') + ' ' + position;
+  highlight.style.cssText = `position: absolute; top: ${top}px; left: ${left}px; width: ${width}px; height: ${height}px; border: ${borderThickPx}px solid ${color}; pointer-events: none; z-index: 100; box-sizing: border-box;`;
+
+  table.style.position = 'relative';
+  table.style.overflow = 'visible';
+  table.appendChild(highlight);
+}
