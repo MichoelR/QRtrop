@@ -171,10 +171,10 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  . d add($$zconvert^mkrutl(rowWords,"O","UTF8"))
  . d add("</tr>")
  . 
- . ; Row: trops
+ . ; Row: trops - build right-to-left to match word order
  . d add("<tr>")
- . s rowTrops="" ; build string
- . F i=segmentEnd:1:segmentStart D
+ . s rowTrops="" ; build string right-to-left
+ . F i=segmentStart:-1:segmentEnd D
  .. S tropL=$g(revTrops(i,"L")),trop=$g(revTrops(i)),tropR=$g(revTrops(i,"R"))
  .. S tropClass="verse-trop"_$S(i=wrd1:" mismatch-pair",1:"")
  .. S rowTrops = rowTrops _ "<td>"_tropL_"<span class='"_tropClass_"'>"_$zstrip(trop,"<W")_"</span>"_tropR_"</td>"
