@@ -364,43 +364,67 @@ function highlightRangeAcrossTables(container, startWord, endWord, color) {
   const minWord = Math.min(startWord, endWord);
   const maxWord = Math.max(startWord, endWord);
   const isStartLower = startWord < endWord;
+  const startTableIndex = tables.indexOf(startTable);
+  const endTableIndex = tables.indexOf(endTable);
 
   if (startTable === endTable) {
     // If start and end are in the same table, highlight the range in that table
     const cells = Array.from(startTable.rows[0].cells);
     const startIndex = cells.indexOf(startCell) + 1;
     const endIndex = cells.indexOf(endCell) + 1;
-    // Since words are ordered right-to-left, the lower word number should be on the left (higher index)
+    // Since words are ordered right-to-left, the lower word number should be on the left (higher index in cells array)
     if (isStartLower) {
       highlightCellRange(startTable, 1, startIndex, 1, endIndex, color === 'orange' ? 4 : -4, 1.5, color);
     } else {
       highlightCellRange(startTable, 1, endIndex, 1, startIndex, color === 'orange' ? 4 : -4, 1.5, color);
     }
   } else {
-    // If start and end are in different tables, highlight based on word number order
+    // If start and end are in different tables, highlight based on table order and word number
     const startTableCells = Array.from(startTable.rows[0].cells);
     const startIndex = startTableCells.indexOf(startCell) + 1;
-    if (isStartLower) {
-      // Start word is lower, so it should be on the left, highlight from start to right end of table
-      highlightCellRange(startTable, 1, startIndex, 1, startTableCells.length, color === 'orange' ? 4 : -4, 1.5, color);
+    if (startTableIndex < endTableIndex) {
+      // Tables are ordered top-to-bottom, start table is above end table
+      if (isStartLower) {
+        // Start word is lower, so highlight from start to end of table (left to right in visual order)
+        highlightCellRange(startTable, 1, startIndex, 1, startTableCells.length, color === 'orange' ? 4 : -4, 1.5, color);
+      } else {
+        // Start word is higher, so highlight from start to beginning of table (right to left in visual order)
+        highlightCellRange(startTable, 1, 1, 1, startIndex, color === 'orange' ? 4 : -4, 1.5, color);
+      }
     } else {
-      // Start word is higher, so it should be on the right, highlight from start to left end of table
-      highlightCellRange(startTable, 1, 1, 1, startIndex, color === 'orange' ? 4 : -4, 1.5, color);
+      // Start table is below end table (shouldn't happen with current ordering, but handle for completeness)
+      if (isStartLower) {
+        // Start word is lower, so highlight from start to beginning of table (right to left in visual order)
+        highlightCellRange(startTable, 1, 1, 1, startIndex, color === 'orange' ? 4 : -4, 1.5, color);
+      } else {
+        // Start word is higher, so highlight from start to end of table (left to right in visual order)
+        highlightCellRange(startTable, 1, startIndex, 1, startTableCells.length, color === 'orange' ? 4 : -4, 1.5, color);
+      }
     }
 
     const endTableCells = Array.from(endTable.rows[0].cells);
     const endIndex = endTableCells.indexOf(endCell) + 1;
-    if (isStartLower) {
-      // End word is higher, so it should be on the right, highlight from left start to end
-      highlightCellRange(endTable, 1, 1, 1, endIndex, color === 'orange' ? 4 : -4, 1.5, color);
+    if (startTableIndex < endTableIndex) {
+      // End table is below start table
+      if (isStartLower) {
+        // End word is higher, so highlight from beginning to end (right to left in visual order)
+        highlightCellRange(endTable, 1, 1, 1, endIndex, color === 'orange' ? 4 : -4, 1.5, color);
+      } else {
+        // End word is lower, so highlight from end to end of table (left to right in visual order)
+        highlightCellRange(endTable, 1, endIndex, 1, endTableCells.length, color === 'orange' ? 4 : -4, 1.5, color);
+      }
     } else {
-      // End word is lower, so it should be on the left, highlight from end to right end of table
-      highlightCellRange(endTable, 1, endIndex, 1, endTableCells.length, color === 'orange' ? 4 : -4, 1.5, color);
+      // End table is above start table (shouldn't happen, but handle for completeness)
+      if (isStartLower) {
+        // End word is higher, so highlight from end to end of table (left to right in visual order)
+        highlightCellRange(endTable, 1, endIndex, 1, endTableCells.length, color === 'orange' ? 4 : -4, 1.5, color);
+      } else {
+        // End word is lower, so highlight from beginning to end (right to left in visual order)
+        highlightCellRange(endTable, 1, 1, 1, endIndex, color === 'orange' ? 4 : -4, 1.5, color);
+      }
     }
 
     // Highlight all tables between startTable and endTable
-    const startTableIndex = tables.indexOf(startTable);
-    const endTableIndex = tables.indexOf(endTable);
     const step = startTableIndex < endTableIndex ? 1 : -1;
     for (let i = startTableIndex + step; i !== endTableIndex; i += step) {
       const midTable = tables[i];
