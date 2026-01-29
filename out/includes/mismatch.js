@@ -365,17 +365,17 @@ function highlightRangeAcrossTables(container, startWord, endWord, color) {
     const cells = Array.from(startTable.rows[0].cells);
     const startIndex = cells.indexOf(startCell) + 1;
     const endIndex = cells.indexOf(endCell) + 1;
-    highlightCellRange(startTable, 1, startIndex, 1, endIndex, 2, 2, color);
+    highlightCellRange(startTable, 1, startIndex, 1, endIndex, color === 'orange' ? 4 : -4, 1.5, color);
   } else {
     // If start and end are in different tables, highlight from start to end of startTable
     // and from beginning to end in endTable, and full tables in between
     const startTableCells = Array.from(startTable.rows[0].cells);
     const startIndex = startTableCells.indexOf(startCell) + 1;
-    highlightCellRange(startTable, 1, startIndex, 1, startTableCells.length, 2, 2, color);
+    highlightCellRange(startTable, 1, startIndex, 1, startTableCells.length, color === 'orange' ? 4 : -4, 1.5, color);
 
     const endTableCells = Array.from(endTable.rows[0].cells);
     const endIndex = endTableCells.indexOf(endCell) + 1;
-    highlightCellRange(endTable, 1, 1, 1, endIndex, 2, 2, color);
+    highlightCellRange(endTable, 1, 1, 1, endIndex, color === 'orange' ? 4 : -4, 1.5, color);
 
     // Highlight all tables between startTable and endTable
     const startTableIndex = tables.indexOf(startTable);
@@ -383,7 +383,7 @@ function highlightRangeAcrossTables(container, startWord, endWord, color) {
     for (let i = startTableIndex + 1; i < endTableIndex; i++) {
       const midTable = tables[i];
       const midCells = Array.from(midTable.rows[0].cells);
-      highlightCellRange(midTable, 1, 1, 1, midCells.length, 2, 2, color);
+      highlightCellRange(midTable, 1, 1, 1, midCells.length, color === 'orange' ? 4 : -4, 1.5, color);
     }
   }
 }
