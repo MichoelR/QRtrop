@@ -1,10 +1,13 @@
 // JavaScript for mismatch highlighting in verse display
 function highlightMismatch(element, type, chap, verse) {
+   console.log('highlightMismatch called with type:', type, 'chap:', chap, 'verse:', verse);
   const container = document.querySelector(`.verse-container[data-chap="${chap}"][data-verse="${verse}"]`);
+   console.log('Container found:', container);
   if (!container) return;
   const words = element.getAttribute('data-words').split('-');
   const startWord = parseInt(words[0]);
   const endWord = parseInt(words[1]);
+   console.log('Highlighting range:', startWord, 'to', endWord);
   const tables = container.querySelectorAll('.segment-table');
   tables.forEach(table => {
     const cells = table.querySelectorAll('td[data-word]');
@@ -26,9 +29,12 @@ function highlightMismatch(element, type, chap, verse) {
 }
 
 function highlightWordRange(cell, chap, verse) {
+   console.log('highlightWordRange called with chap:', chap, 'verse:', verse);
   const container = document.querySelector(`.verse-container[data-chap="${chap}"][data-verse="${verse}"]`);
+   console.log('Container found:', container);
   if (!container) return;
   const selectedRadio = container.querySelector(`input[name="mismatch-select-${chap}-${verse}"]:checked`);
+   console.log('Selected radio:', selectedRadio);
   if (!selectedRadio) return;
   const tropRange = selectedRadio.getAttribute('data-trop').split('-');
   const syntaxRange = selectedRadio.getAttribute('data-syntax').split('-');
@@ -58,12 +64,14 @@ function highlightWordRange(cell, chap, verse) {
 document.addEventListener('DOMContentLoaded', function() {
   // Initialize radio button listeners for mismatch selection
   const radioButtons = document.querySelectorAll('input[type="radio"][name^="mismatch-select-"]');
+   console.log('Found radio buttons:', radioButtons.length);
   radioButtons.forEach(radio => {
     radio.addEventListener('change', function() {
       const name = radio.getAttribute('name');
       const chapVerse = name.split('mismatch-select-')[1].split('-');
       const chap = chapVerse[0];
       const verse = chapVerse[1];
+       console.log('Radio button changed for chap:', chap, 'verse:', verse);
       highlightWordRange(null, chap, verse);
     });
   });
