@@ -318,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function() {
           if (tropCells.length) {
             const startCol = cells.indexOf(tropCells[0]) + 1;
             const endCol = cells.indexOf(tropCells[tropCells.length - 1]) + 1;
-            highlightCellRange(table, 1, startCol, 1, endCol, 4, 1.5, 'orange'); // borderPx=4 for trope
+            highlightCellRange(table, 1, startCol, 1, endCol, 2, 2, 'orange'); // Adjusted borderPx and thickness for visibility
           }
 
           // For syntax
@@ -329,18 +329,18 @@ document.addEventListener('DOMContentLoaded', function() {
           if (syntaxCells.length) {
             const startCol = cells.indexOf(syntaxCells[0]) + 1;
             const endCol = cells.indexOf(syntaxCells[syntaxCells.length - 1]) + 1;
-            highlightCellRange(table, 1, startCol, 1, endCol, -4, 1.5, 'blue'); // borderPx=-4 for syntax
+            highlightCellRange(table, 1, startCol, 1, endCol, 2, 2, 'blue'); // Adjusted borderPx and thickness for visibility
           }
         });
 
         // Add colored borders to mismatch_data spans to match highlight colors
         if (tropSpan) {
-          tropSpan.style.border = '1.5px solid orange';
+          tropSpan.style.border = '2px solid orange';
           tropSpan.style.padding = '6px 2px';
           tropSpan.style.display = 'inline-block';
         }
         if (syntaxSpan) {
-          syntaxSpan.style.border = '1.5px solid blue';
+          syntaxSpan.style.border = '2px solid blue';
           syntaxSpan.style.padding = '2px';
           syntaxSpan.style.display = 'inline-block';
         }
@@ -357,13 +357,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, borderPx = 3, borderThickPx = 1, color = 'red') {
   // Remove any existing highlights to prevent duplicates
-  const existingHighlights = table.querySelectorAll('.cell-highlight');
+  const existingHighlights = table.querySelectorAll('.cell-highlight-' + (color === 'orange' ? 'trop' : 'syntax'));
   existingHighlights.forEach(h => h.remove());
 
   const rect = table.getBoundingClientRect();
   const rowStarts = Array.from(table.rows).slice(startRow - 1, endRow);
-  const firstCell = rowStarts[0] && rowStarts[0].cells[startCol - 1];
-  const lastCell = rowStarts[rowStarts.length - 1] && rowStarts[rowStarts.length - 1].cells[endCol - 1];
+  if (rowStarts.length === 0) return;
+  
+  const cells = Array.from(rowStarts[0].cells);
+  if (cells.length === 0) return;
+  
+  // Adjust startCol and endCol to be within bounds
+  startCol = Math.min(startCol, cells.length);
+  endCol = Math.min(endCol, cells.length);
+  
+  const firstCell = cells[startCol - 1];
+  const lastCell = cells[endCol - 1];
   
   if (!firstCell || !lastCell) return;
   
@@ -376,7 +385,7 @@ function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, b
   const height = lastRect.bottom - firstRect.top + borderPx * 2;
   
   const highlight = document.createElement('div');
-  highlight.className = 'cell-highlight ' + (color === 'orange' ? 'trop-highlight' : 'syntax-highlight');
+  highlight.className = 'cell-highlight cell-highlight-' + (color === 'orange' ? 'trop' : 'syntax');
   highlight.style.cssText = `position: absolute; top: ${top}px; left: ${left}px; width: ${width}px; height: ${height}px; border: ${borderThickPx}px solid ${color}; pointer-events: none; z-index: 100; box-sizing: border-box;`;
   
   table.style.position = 'relative';

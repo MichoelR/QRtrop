@@ -63,5 +63,21 @@ td {border: 1px solid black; padding: 5px; text-align: right; white-space: nowra
   margin-left: auto;
   margin-right: 0;
   position: relative;
+  border-collapse: collapse;
+}
+
+.cell-highlight {
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+  box-sizing: border-box;
+}
+
+.cell-highlight-trop {
+  border: 2px solid orange !important;
+}
+
+.cell-highlight-syntax {
+  border: 2px solid blue !important;
 }
 
