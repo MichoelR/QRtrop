@@ -154,11 +154,12 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  I avgComplexityPerWord>2 S segmentSize=$S(segmentSize>10:segmentSize-2,1:segmentSize-1)
  I avgComplexityPerWord>4 S segmentSize=$S(segmentSize>8:segmentSize-2,1:segmentSize-1)
  S segmentSize=$S(segmentSize<5:5,1:segmentSize) ; Ensure minimum segment size
- S currentWord=maxWord
+ ; Reverse the order of segments to align right edges for RTL text
+ S currentWord=minWord
  S segmentCount=0
- F  Q:currentWord<minWord  D
- . S segmentStart=currentWord
- . S segmentEnd=$S(currentWord-segmentSize+1<minWord:minWord,1:currentWord-segmentSize+1)
+ F  Q:currentWord>maxWord  D
+ . S segmentEnd=currentWord
+ . S segmentStart=$S(currentWord+segmentSize-1>maxWord:maxWord,1:currentWord+segmentSize-1)
  . S segmentCount=segmentCount+1
  . d add("<table class='segment-table' data-segment='"_segmentCount_"'>")
  . 
@@ -199,7 +200,7 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  .. d add("</td>")
  . d add("</tr>")
  . d add("</table>")
- . S currentWord=segmentEnd-1
+ . S currentWord=segmentStart+1
  d add("</div>")
  d add("</div>")
  d add("<br/>")
