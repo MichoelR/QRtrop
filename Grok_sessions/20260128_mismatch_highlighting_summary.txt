@@ -1,0 +1,36 @@
+Session Summary - 2026-01-28
+Topic: Mismatch Highlighting and Table Alignment in QR Project
+
+Overview:
+- Worked on fixing various issues related to mismatch tables in the QR project output.
+- Focused on table alignment, text direction, and highlighting for trop and syntax mismatches.
+
+Key Changes and Fixes:
+1. Table Alignment:
+   - Right-justified mismatch tables and associated text (verse and mismatch data).
+   - Implemented dynamic table segmentation for long mismatches to improve readability.
+
+2. Text Direction:
+   - Addressed issues with RTL text alignment for Hebrew content.
+   - Ensured proper ordering of trop and syntax rows to match RTL word order.
+
+3. Highlighting Fixes:
+   - Corrected RTL highlighting direction for single and multi-row mismatches.
+   - Implemented open-ended highlighting for multi-row spans to show continuity across tables.
+   - Adjusted border styles for start, middle, and end positions of multi-row highlights.
+
+Files Modified:
+- NewCode\mkrqr7_current.int: Updated table segmentation and ordering.
+- out\includes\mismatch.js: Fixed highlighting logic for RTL and multi-row spans.
+- out\includes\style.css: Added CSS for right alignment and open-ended highlight borders.
+
+Outcome:
+- Successfully aligned tables to the right with proper RTL ordering.
+- Fixed highlighting direction issues for both single and multi-row mismatches.
+- Implemented visual continuity for multi-row highlights with open-ended borders.
+
+Next Steps:
+- Continue addressing any remaining issues or new features as requested by the user.
+- Potential future enhancements could include further styling adjustments or additional functionality for mismatch visualization.
+
+Note: Session to be continued at a later time as per user's request.
