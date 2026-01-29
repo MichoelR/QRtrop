@@ -304,34 +304,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const [tropStart, tropEnd] = tropSpan.dataset.words.split('-').map(Number);
         const [syntaxStart, syntaxEnd] = syntaxSpan.dataset.words.split('-').map(Number);
 
-        // For each segment table in the container
-        container.querySelectorAll('.segment-table').forEach(table => {
-          const row = table.rows[0]; // words row
-          if (!row) return;
-          const cells = Array.from(row.cells);
+        // Remove any existing highlights in the container to prevent duplicates
+        container.querySelectorAll('.cell-highlight').forEach(h => h.remove());
 
-          // For trope
-          const tropCells = cells.filter(td => {
-            const w = +td.dataset.word;
-            return w >= tropStart && w <= tropEnd;
-          });
-          if (tropCells.length) {
-            const startCol = cells.indexOf(tropCells[0]) + 1;
-            const endCol = cells.indexOf(tropCells[tropCells.length - 1]) + 1;
-            highlightCellRange(table, 1, startCol, 1, endCol, 2, 2, 'orange'); // Adjusted borderPx and thickness for visibility
-          }
-
-          // For syntax
-          const syntaxCells = cells.filter(td => {
-            const w = +td.dataset.word;
-            return w >= syntaxStart && w <= syntaxEnd;
-          });
-          if (syntaxCells.length) {
-            const startCol = cells.indexOf(syntaxCells[0]) + 1;
-            const endCol = cells.indexOf(syntaxCells[syntaxCells.length - 1]) + 1;
-            highlightCellRange(table, 1, startCol, 1, endCol, 2, 2, 'blue'); // Adjusted borderPx and thickness for visibility
-          }
-        });
+        // Highlight trope range across all relevant tables
+        highlightRangeAcrossTables(container, tropStart, tropEnd, 'orange');
+        
+        // Highlight syntax range across all relevant tables
+        highlightRangeAcrossTables(container, syntaxStart, syntaxEnd, 'blue');
 
         // Add colored borders to mismatch_data spans to match highlight colors
         if (tropSpan) {
@@ -355,11 +335,60 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, borderPx = 3, borderThickPx = 1, color = 'red') {
-  // Remove any existing highlights to prevent duplicates
-  const existingHighlights = table.querySelectorAll('.cell-highlight-' + (color === 'orange' ? 'trop' : 'syntax'));
-  existingHighlights.forEach(h => h.remove());
+function highlightRangeAcrossTables(container, startWord, endWord, color) {
+  const tables = Array.from(container.querySelectorAll('.segment-table'));
+  if (!tables.length) return;
 
+  // Find the tables that contain the start and end words
+  let startTable = null, endTable = null;
+  let startCell = null, endCell = null;
+
+  tables.forEach(table => {
+    const cells = Array.from(table.rows[0].cells);
+    cells.forEach(cell => {
+      const wordNum = parseInt(cell.dataset.word);
+      if (wordNum === startWord && !startCell) {
+        startTable = table;
+        startCell = cell;
+      }
+      if (wordNum === endWord && !endCell) {
+        endTable = table;
+        endCell = cell;
+      }
+    });
+  });
+
+  if (!startCell || !endCell) return;
+
+  if (startTable === endTable) {
+    // If start and end are in the same table, highlight the range in that table
+    const cells = Array.from(startTable.rows[0].cells);
+    const startIndex = cells.indexOf(startCell) + 1;
+    const endIndex = cells.indexOf(endCell) + 1;
+    highlightCellRange(startTable, 1, startIndex, 1, endIndex, 2, 2, color);
+  } else {
+    // If start and end are in different tables, highlight from start to end of startTable
+    // and from beginning to end in endTable, and full tables in between
+    const startTableCells = Array.from(startTable.rows[0].cells);
+    const startIndex = startTableCells.indexOf(startCell) + 1;
+    highlightCellRange(startTable, 1, startIndex, 1, startTableCells.length, 2, 2, color);
+
+    const endTableCells = Array.from(endTable.rows[0].cells);
+    const endIndex = endTableCells.indexOf(endCell) + 1;
+    highlightCellRange(endTable, 1, 1, 1, endIndex, 2, 2, color);
+
+    // Highlight all tables between startTable and endTable
+    const startTableIndex = tables.indexOf(startTable);
+    const endTableIndex = tables.indexOf(endTable);
+    for (let i = startTableIndex + 1; i < endTableIndex; i++) {
+      const midTable = tables[i];
+      const midCells = Array.from(midTable.rows[0].cells);
+      highlightCellRange(midTable, 1, 1, 1, midCells.length, 2, 2, color);
+    }
+  }
+}
+
+function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, borderPx = 3, borderThickPx = 1, color = 'red') {
   const rect = table.getBoundingClientRect();
   const rowStarts = Array.from(table.rows).slice(startRow - 1, endRow);
   if (rowStarts.length === 0) return;
@@ -368,8 +397,8 @@ function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, b
   if (cells.length === 0) return;
   
   // Adjust startCol and endCol to be within bounds
-  startCol = Math.min(startCol, cells.length);
-  endCol = Math.min(endCol, cells.length);
+  startCol = Math.max(1, Math.min(startCol, cells.length));
+  endCol = Math.max(1, Math.min(endCol, cells.length));
   
   const firstCell = cells[startCol - 1];
   const lastCell = cells[endCol - 1];
