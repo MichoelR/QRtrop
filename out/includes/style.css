@@ -38,6 +38,8 @@ td {border: 1px solid black; padding: 5px; text-align: right; white-space: nowra
 .mismatch_data {
   margin-bottom: 10px;
   font-weight: bold;
+  text-align: right;
+  width: 100%;
 }
 
 /* Styles for mismatch tables to align right */
