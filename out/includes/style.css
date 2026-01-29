@@ -46,7 +46,9 @@ div > div:first-child {
   text-align: right;
   width: 100%;
   margin-bottom: 5px;
-  direction: ltr;
+  margin-left: auto;
+  margin-right: 0;
+  display: block;
 }
 
 /* Styles for mismatch tables to align right */
