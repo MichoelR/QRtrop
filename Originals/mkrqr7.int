@@ -148,7 +148,8 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  s row3="" ; build string RTL
  F i=minWord:1:maxWord D
  . S tropL=$g(revTrops(i,"L")),trop=$g(revTrops(i)),tropR=$g(revTrops(i,"R"))
- . S row3 = "<td>"_tropL_"<span class='verse-trop'>"_$zstrip(trop,"<W")_"</span>"_tropR_"</td>" _ row3
+ . S tropClass="verse-trop"_$S(i=wrd1:" mismatch-pair",1:"")
+ . S row3 = "<td>"_tropL_"<span class='"_tropClass_"'>"_$zstrip(trop,"<W")_"</span>"_tropR_"</td>" _ row3
  d add(row3)
  d add("</tr>")
  ;

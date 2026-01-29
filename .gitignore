@@ -1,3 +1,4 @@
 Originals/out/*
 !Originals/out/includes/
 !Originals/out/includes/**
+.aider*
