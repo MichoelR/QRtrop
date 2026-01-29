@@ -356,6 +356,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, borderPx = 3, borderThickPx = 1, color = 'red') {
+  // Remove any existing highlights to prevent duplicates
+  const existingHighlights = table.querySelectorAll('.cell-highlight');
+  existingHighlights.forEach(h => h.remove());
+
   const rect = table.getBoundingClientRect();
   const rowStarts = Array.from(table.rows).slice(startRow - 1, endRow);
   const firstCell = rowStarts[0] && rowStarts[0].cells[startCol - 1];
@@ -372,7 +376,7 @@ function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, b
   const height = lastRect.bottom - firstRect.top + borderPx * 2;
   
   const highlight = document.createElement('div');
-  highlight.className = 'cell-highlight';
+  highlight.className = 'cell-highlight ' + (color === 'orange' ? 'trop-highlight' : 'syntax-highlight');
   highlight.style.cssText = `position: absolute; top: ${top}px; left: ${left}px; width: ${width}px; height: ${height}px; border: ${borderThickPx}px solid ${color}; pointer-events: none; z-index: 100; box-sizing: border-box;`;
   
   table.style.position = 'relative';
