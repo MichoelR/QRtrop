@@ -120,7 +120,7 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  .... d aSP(.revSyn,maxWord,,"L",1,syntax,level,startWord,endWord,chap,verse,startPart,endPart,lvl2,wrd20,wrd2,mismatchCnt)
  ... E  d aSP(.revSyn,endWord,endPart,"L",,syntax,level,startWord,endWord,chap,verse,startPart,endPart,lvl2,wrd20,wrd2,mismatchCnt)
  ;
- d add("<div>")
+ d add("<div class='verse-container'>")
  ;
  s txt=wrds
  i wrd10<wrd20 d

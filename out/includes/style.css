@@ -42,7 +42,7 @@ td {border: 1px solid black; padding: 5px; text-align: right; white-space: nowra
   width: 100%;
 }
 
-div > div:first-child {
+.verse-container {
   text-align: right;
   width: 100%;
   margin-bottom: 5px;
