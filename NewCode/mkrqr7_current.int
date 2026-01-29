@@ -1,7 +1,7 @@
 mkrqr7	; mkr 07/31/2025; kriah (קריה), trop (טעמים), and syntax - various queries
 	;
 	;
-generateAllVerses ; Generate output for all verses in ^torah2 with optional mismatch highlighting
+findMismatch ; Find mismatches between trop (lvls) and syntax (fslvls) trees in ^torah2
  n bookName,chars,glb0,glb1,NONLETTERS,sefer,sefarim
  ;
  s U="^",P="|",sp=" "
@@ -210,23 +210,8 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  . d add("</table>")
  . S currentWord=segmentStart+1
  d add("</div>")
- i mismatchCnt>0 d
- . d add("<div class='mismatch-info'>")
- . f mismatchIdx=1:1:mismatchCnt d
- .. s mismatchData=mismatches(mismatchIdx)
- .. s lvl1=$p(mismatchData,"^",1),wrd10=$p(mismatchData,"^",2),wrd1=$p(mismatchData,"^",3)
- .. s lvl2=$p(mismatchData,"^",4),wrd20=$p(mismatchData,"^",5),wrd2=$p(mismatchData,"^",6)
- .. s displayStyle=$s(mismatchIdx=1:"display: block;",1:"display: none;")
- .. s txt="<div class='mismatch-data mismatch-"_mismatchIdx_"' style='"_displayStyle_"'>"
- .. s txt=txt_"Mismatch "_mismatchIdx_": Trop branch words "_wrd10_" - "_wrd1_", "
- .. s txt=txt_"<span class='verse-trop' data-words='"_wrd10_"-"_wrd1_"'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
- .. s txt=txt_". Syntax branch words "_wrd20_" - "_wrd2_", "
- .. s txt=txt_"<span class='verse-syntax' data-words='"_wrd20_"-"_wrd2_"'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</div>"
- .. d add($$zconvert^mkrutl(txt,"O","UTF8"))
- . d add("</div>")
- i mismatchCnt>0 d
-  . d add("<br/>")
-  . d add("<br/>")
+ d add("<br/>")
+ d add("<br/>")
  q
  ;
 getTaam(posuk,i) ; for ith word
