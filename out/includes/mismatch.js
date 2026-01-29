@@ -365,28 +365,33 @@ function highlightRangeAcrossTables(container, startWord, endWord, color) {
     const cells = Array.from(startTable.rows[0].cells);
     const startIndex = cells.indexOf(startCell) + 1;
     const endIndex = cells.indexOf(endCell) + 1;
-    // Ensure the start index is less than end index for RTL
-    const minIndex = Math.min(startIndex, endIndex);
-    const maxIndex = Math.max(startIndex, endIndex);
-    highlightCellRange(startTable, 1, minIndex, 1, maxIndex, color === 'orange' ? 4 : -4, 1.5, color);
-  } else {
-    // If start and end are in different tables, highlight from start to end of startTable
-    // and from beginning to end in endTable, and full tables in between
-    const startTableCells = Array.from(startTable.rows[0].cells);
-    const startIndex = startTableCells.indexOf(startCell) + 1;
-    // Determine if startWord is higher or lower to handle RTL
+    // Since words are ordered right-to-left, the higher word number should be on the right (lower index)
     const isStartHigher = startWord > endWord;
     if (isStartHigher) {
+      highlightCellRange(startTable, 1, startIndex, 1, endIndex, color === 'orange' ? 4 : -4, 1.5, color);
+    } else {
+      highlightCellRange(startTable, 1, endIndex, 1, startIndex, color === 'orange' ? 4 : -4, 1.5, color);
+    }
+  } else {
+    // If start and end are in different tables, highlight based on word number order
+    const startTableCells = Array.from(startTable.rows[0].cells);
+    const startIndex = startTableCells.indexOf(startCell) + 1;
+    const isStartHigher = startWord > endWord;
+    if (isStartHigher) {
+      // Start word is higher, so it should be on the right, highlight from start to left end of table
       highlightCellRange(startTable, 1, 1, 1, startIndex, color === 'orange' ? 4 : -4, 1.5, color);
     } else {
+      // Start word is lower, so it should be on the left, highlight from start to right end of table
       highlightCellRange(startTable, 1, startIndex, 1, startTableCells.length, color === 'orange' ? 4 : -4, 1.5, color);
     }
 
     const endTableCells = Array.from(endTable.rows[0].cells);
     const endIndex = endTableCells.indexOf(endCell) + 1;
     if (isStartHigher) {
+      // End word is lower, so it should be on the left, highlight from end to right end of table
       highlightCellRange(endTable, 1, endIndex, 1, endTableCells.length, color === 'orange' ? 4 : -4, 1.5, color);
     } else {
+      // End word is higher, so it should be on the right, highlight from left start to end
       highlightCellRange(endTable, 1, 1, 1, endIndex, color === 'orange' ? 4 : -4, 1.5, color);
     }
 
@@ -397,11 +402,7 @@ function highlightRangeAcrossTables(container, startWord, endWord, color) {
     for (let i = startTableIndex + step; i !== endTableIndex; i += step) {
       const midTable = tables[i];
       const midCells = Array.from(midTable.rows[0].cells);
-      if (isStartHigher) {
-        highlightCellRange(midTable, 1, 1, 1, midCells.length, color === 'orange' ? 4 : -4, 1.5, color);
-      } else {
-        highlightCellRange(midTable, 1, 1, 1, midCells.length, color === 'orange' ? 4 : -4, 1.5, color);
-      }
+      highlightCellRange(midTable, 1, 1, 1, midCells.length, color === 'orange' ? 4 : -4, 1.5, color);
     }
   }
 }
