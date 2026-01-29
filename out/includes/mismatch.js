@@ -458,19 +458,8 @@ function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, b
   const height = lastRect.bottom - firstRect.top + borderPx * 2;
   
   const highlight = document.createElement('div');
-  highlight.className = 'cell-highlight cell-highlight-' + (color === 'orange' ? 'trop' : 'syntax');
-  
-  // Adjust border styles based on position in multi-row span
-  let borderStyle = `border: ${borderThickPx}px solid ${color};`;
-  if (position === 'start') {
-    borderStyle = `border-top: ${borderThickPx}px solid ${color}; border-right: ${borderThickPx}px solid ${color}; border-bottom: ${borderThickPx}px solid ${color}; border-left: 0;`;
-  } else if (position === 'middle') {
-    borderStyle = `border-top: ${borderThickPx}px solid ${color}; border-bottom: ${borderThickPx}px solid ${color}; border-left: 0; border-right: 0;`;
-  } else if (position === 'end') {
-    borderStyle = `border-top: ${borderThickPx}px solid ${color}; border-left: ${borderThickPx}px solid ${color}; border-bottom: ${borderThickPx}px solid ${color}; border-right: 0;`;
-  }
-  
-  highlight.style.cssText = `position: absolute; top: ${top}px; left: ${left}px; width: ${width}px; height: ${height}px; ${borderStyle} pointer-events: none; z-index: 100; box-sizing: border-box;`;
+  highlight.className = 'cell-highlight cell-highlight-' + (color === 'orange' ? 'trop' : 'syntax') + ' ' + position;
+  highlight.style.cssText = `position: absolute; top: ${top}px; left: ${left}px; width: ${width}px; height: ${height}px; border: ${borderThickPx}px solid ${color}; pointer-events: none; z-index: 100; box-sizing: border-box;`;
   
   table.style.position = 'relative';
   table.style.overflow = 'visible';

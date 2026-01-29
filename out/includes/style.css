@@ -82,3 +82,16 @@ td {border: 1px solid black; padding: 5px; text-align: right; white-space: nowra
   border: 2px solid blue !important;
 }
 
+.cell-highlight.start {
+  border-left: 0 !important;
+}
+
+.cell-highlight.middle {
+  border-left: 0 !important;
+  border-right: 0 !important;
+}
+
+.cell-highlight.end {
+  border-right: 0 !important;
+}
+
