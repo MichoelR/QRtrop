@@ -19,11 +19,6 @@ generateAllVerses ; Generate output for all verses in ^torah2 with optional mism
  . d includeFile("header.html")
  . f versen=1:1 q:'$d(^torah2(bookn,versen))  d generateVerseOutput(bookn,versen)
  . d includeFile("footer.html")
- . ; Include the JavaScript and CSS files for mismatch highlighting
- . s txt="<script src='includes/verseDisplay.js'></script>"
- . d add(txt)
- . s txt="<link rel='stylesheet' href='includes/highlight.css'>"
- . d add(txt)
  . d writeout^mkrqr1(bookn,glb1,"allVerses"_bookName,"QRCode\out","html") ; output to file
  . k @glb1
  q
@@ -134,6 +129,7 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  ;
  d add("<div class='verse-container'>")
  ;
+ d add("<div class='verse-container' data-chap='"_chap_"' data-verse='"_verse_"'>")
  s txt="B'reishis "_chap_":"_verse_" "_$$zconvert^mkrutl(wrds,"O","UTF8")
  d add(txt)
  ; Mismatch selection with radio buttons if any
