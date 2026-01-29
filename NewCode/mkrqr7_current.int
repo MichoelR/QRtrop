@@ -137,46 +137,56 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  s txt=txt_"<span class='verse-syntax' data-words='"_wrd20_"-"_wrd2_"'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</div>"
  d add($$zconvert^mkrutl(txt,"O","UTF8"))
  ;
- d add("<table>")
- d add("<tr>")
- ; Row 2: Words - RTL
- s row2=""
- F i=maxWord:-1:minWord D
- . S word=posuk(i) ; number of characters
- . S row2 = row2 _ "<td data-word='"_i_"'>"_word_"</td>"
- d add($$zconvert^mkrutl(row2,"O","UTF8"))
- d add("</tr>")
- ;
- d add("<tr>")
- ; Row 3: trops - LTR build, RTL display
- s row3="" ; build string RTL
- F i=minWord:1:maxWord D
- . S tropL=$g(revTrops(i,"L")),trop=$g(revTrops(i)),tropR=$g(revTrops(i,"R"))
- . S tropClass="verse-trop"_$S(i=wrd1:" mismatch-pair",1:"")
- . S row3 = "<td>"_tropL_"<span class='"_tropClass_"'>"_$zstrip(trop,"<W")_"</span>"_tropR_"</td>" _ row3
- d add(row3)
- d add("</tr>")
- ;
- d add("<tr>")
- ; Row 4: Syntax - RTL
- F i=maxWord:-1:minWord D  ; leaf syntax
- . d add("<td>")
- . S j="" F  S j=$o(revSyn(i,j),-1) q:j=""  d  ; word-part
- .. S partTxt=""
- .. F k="L",0,"R" i $d(revSyn(i,j,k)) d  ; leaf or syntax branch ends
- ... S class=$s(k=0:"syntax-part",k="L":"branch-end",k="R":"branch-start",1:"")
- ... I k="L" F cnt=$g(revSyn(i,j,k,0)):-1:1 d  ; maybe several on one part, esp. ('s
- .... S part=revSyn(i,j,k,cnt)
- .... S partTxt=partTxt_part
- ... E  F cnt=1:1:$g(revSyn(i,j,k,0)) d  ; maybe several on one part, esp. ('s
- .... S part=revSyn(i,j,k,cnt)
- .... S partTxt=partTxt_part
- .. d add(partTxt)
- . d add("</td>")
- d add("</tr>")
- ;
- d add("")
- d add("</table>")
+ d add("<div class='table-container'>")
+ ; Determine how many words per segment (e.g., 10 words per segment)
+ S segmentSize=10
+ S currentWord=maxWord
+ S segmentCount=0
+ WHILE currentWord >= minWord D
+ . S segmentStart=currentWord
+ . S segmentEnd=$S(currentWord-segmentSize+1<minWord:minWord,1:currentWord-segmentSize+1)
+ . S segmentCount=segmentCount+1
+ . d add("<table class='segment-table' data-segment='"_segmentCount_"'>")
+ . 
+ . ; Row: Words - RTL
+ . d add("<tr>")
+ . s rowWords=""
+ . F i=segmentStart:-1:segmentEnd D
+ .. S word=posuk(i) ; number of characters
+ .. S rowWords = rowWords _ "<td data-word='"_i_"'>"_word_"</td>"
+ . d add($$zconvert^mkrutl(rowWords,"O","UTF8"))
+ . d add("</tr>")
+ . 
+ . ; Row: trops - LTR build, RTL display
+ . d add("<tr>")
+ . s rowTrops="" ; build string RTL
+ . F i=segmentEnd:1:segmentStart D
+ .. S tropL=$g(revTrops(i,"L")),trop=$g(revTrops(i)),tropR=$g(revTrops(i,"R"))
+ .. S tropClass="verse-trop"_$S(i=wrd1:" mismatch-pair",1:"")
+ .. S rowTrops = "<td>"_tropL_"<span class='"_tropClass_"'>"_$zstrip(trop,"<W")_"</span>"_tropR_"</td>" _ rowTrops
+ . d add(rowTrops)
+ . d add("</tr>")
+ . 
+ . ; Row: Syntax - RTL
+ . d add("<tr>")
+ . F i=segmentStart:-1:segmentEnd D  ; leaf syntax
+ .. d add("<td>")
+ .. S j="" F  S j=$o(revSyn(i,j),-1) q:j=""  d  ; word-part
+ ... S partTxt=""
+ ... F k="L",0,"R" i $d(revSyn(i,j,k)) d  ; leaf or syntax branch ends
+ .... S class=$s(k=0:"syntax-part",k="L":"branch-end",k="R":"branch-start",1:"")
+ .... I k="L" F cnt=$g(revSyn(i,j,k,0)):-1:1 d  ; maybe several on one part, esp. ('s
+ ..... S part=revSyn(i,j,k,cnt)
+ ..... S partTxt=partTxt_part
+ .... E  F cnt=1:1:$g(revSyn(i,j,k,0)) d  ; maybe several on one part, esp. ('s
+ ..... S part=revSyn(i,j,k,cnt)
+ ..... S partTxt=partTxt_part
+ ... d add(partTxt)
+ .. d add("</td>")
+ . d add("</tr>")
+ . d add("</table>")
+ . S currentWord=segmentEnd-1
+ d add("</div>")
  d add("</div>")
  d add("<br/>")
  q
