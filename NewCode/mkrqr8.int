@@ -139,9 +139,9 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  .. s lvl2=$p(mismatchData,"^",4),wrd20=$p(mismatchData,"^",5),wrd2=$p(mismatchData,"^",6)
  .. s txt="<div class='mismatch-selector'>"
  .. s txt=txt_"<div class='mismatch-data mismatch-1'>Mismatch: Trop branch (level "_lvl1_") words "_wrd10_" - "_wrd1_", "
- .. s txt=txt_"<span class='verse-trop' data-words='"_wrd10_"-"_wrd1_"'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
+ .. s txt=txt_"<span class='verse-trop' data-words='"_wrd10_"-"_wrd1_"' onclick='highlightMismatch(this, \"trop\", "_chap_", "_verse_")'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
  .. s txt=txt_". Syntax branch (level "_lvl2_") words "_wrd20_" - "_wrd2_", "
- .. s txt=txt_"<span class='verse-syntax' data-words='"_wrd20_"-"_wrd2_"'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</div>"
+ .. s txt=txt_"<span class='verse-syntax' data-words='"_wrd20_"-"_wrd2_"' onclick='highlightMismatch(this, \"syntax\", "_chap_", "_verse_")'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</div>"
  .. s txt=txt_"</div>"
  .. d add($$zconvert^mkrutl(txt,"O","UTF8"))
  . e  d
@@ -153,9 +153,9 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  ... s checked=$s(mismatchIdx=1:" checked",1:"")
  ... s txt=txt_"<div class='mismatch-data mismatch-"_mismatchIdx_"'>"
  ... s txt=txt_"<span class='mismatch-label'>Mismatch "_mismatchIdx_": Trop branch (level "_lvl1_") words "_wrd10_" - "_wrd1_", "
- ... s txt=txt_"<span class='verse-trop' data-words='"_wrd10_"-"_wrd1_"'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
+ ... s txt=txt_"<span class='verse-trop' data-words='"_wrd10_"-"_wrd1_"' onclick='highlightMismatch(this, \"trop\", "_chap_", "_verse_")'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
  ... s txt=txt_". Syntax branch (level "_lvl2_") words "_wrd20_" - "_wrd2_", "
- ... s txt=txt_"<span class='verse-syntax' data-words='"_wrd20_"-"_wrd2_"'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</span>"
+ ... s txt=txt_"<span class='verse-syntax' data-words='"_wrd20_"-"_wrd2_"' onclick='highlightMismatch(this, \"syntax\", "_chap_", "_verse_")'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</span>"
  ... s txt=txt_"<input type='radio' name='mismatch-select-"_chap_"-"_verse_"' id='mismatch-"_mismatchIdx_"-"_chap_"-"_verse_"' value='"_mismatchIdx_"' data-trop='"_wrd10_"-"_wrd1_"' data-syntax='"_wrd20_"-"_wrd2_"' "_checked_" style='margin-left: 10px;'>"
  ... s txt=txt_"</div>"
  .. s txt=txt_"</div>"
@@ -199,7 +199,7 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  .... s wrd20=$p(mismatchData,"^",5),wrd2=$p(mismatchData,"^",6)
  .... i i>=wrd10,i<=wrd1 s class=$s(class="": "", 1: class_",")_"trop-mismatch-"_mismatchIdx
  .... i i>=wrd20,i<=wrd2 s class=$s(class="": "", 1: class_",")_"syntax-mismatch-"_mismatchIdx
- .. S rowWords = rowWords _ "<td data-word='"_i_"' class='"_class_"'>"_word_"</td>"
+ .. S rowWords = rowWords _ "<td data-word='"_i_"' class='"_class_"' onclick='highlightWordRange(this, "_chap_", "_verse_")'>"_word_"</td>"
  . d add($$zconvert^mkrutl(rowWords,"O","UTF8"))
  . d add("</tr>")
  . 
@@ -245,6 +245,76 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  ; Removed the mismatch-info section as it's now handled above with radio buttons
  d add("</div>") ; end verse-container
  d add("<br />")
+ ; Add JavaScript for mismatch highlighting
+ s txt="<script>"
+ s txt=txt_"function highlightMismatch(element, type, chap, verse) {"
+ s txt=txt_"  const container = document.querySelector(`.verse-container[data-chap=\"${chap}\"][data-verse=\"${verse}\"]`);"
+ s txt=txt_"  if (!container) return;"
+ s txt=txt_"  const words = element.getAttribute('data-words').split('-');"
+ s txt=txt_"  const startWord = parseInt(words[0]);"
+ s txt=txt_"  const endWord = parseInt(words[1]);"
+ s txt=txt_"  const tables = container.querySelectorAll('.segment-table');"
+ s txt=txt_"  tables.forEach(table => {"
+ s txt=txt_"    const cells = table.querySelectorAll('td[data-word]');"
+ s txt=txt_"    cells.forEach(cell => {"
+ s txt=txt_"      const wordNum = parseInt(cell.getAttribute('data-word'));"
+ s txt=txt_"      if (wordNum >= startWord && wordNum <= endWord) {"
+ s txt=txt_"        if (type === 'trop') {"
+ s txt=txt_"          cell.classList.add('highlight-trop');"
+ s txt=txt_"          cell.classList.remove('highlight-syntax');"
+ s txt=txt_"        } else {"
+ s txt=txt_"          cell.classList.add('highlight-syntax');"
+ s txt=txt_"          cell.classList.remove('highlight-trop');"
+ s txt=txt_"        }"
+ s txt=txt_"      } else {"
+ s txt=txt_"        cell.classList.remove('highlight-trop', 'highlight-syntax');"
+ s txt=txt_"      }"
+ s txt=txt_"    });"
+ s txt=txt_"  });"
+ s txt=txt_"}"
+ s txt=txt_"function highlightWordRange(cell, chap, verse) {"
+ s txt=txt_"  const container = document.querySelector(`.verse-container[data-chap=\"${chap}\"][data-verse=\"${verse}\"]`);"
+ s txt=txt_"  if (!container) return;"
+ s txt=txt_"  const selectedRadio = container.querySelector('input[name=\"mismatch-select-' + chap + '-' + verse + '\"]:checked');"
+ s txt=txt_"  if (!selectedRadio) return;"
+ s txt=txt_"  const tropRange = selectedRadio.getAttribute('data-trop').split('-');"
+ s txt=txt_"  const syntaxRange = selectedRadio.getAttribute('data-syntax').split('-');"
+ s txt=txt_"  const startTrop = parseInt(tropRange[0]);"
+ s txt=txt_"  const endTrop = parseInt(tropRange[1]);"
+ s txt=txt_"  const startSyntax = parseInt(syntaxRange[0]);"
+ s txt=txt_"  const endSyntax = parseInt(syntaxRange[1]);"
+ s txt=txt_"  const tables = container.querySelectorAll('.segment-table');"
+ s txt=txt_"  tables.forEach(table => {"
+ s txt=txt_"    const cells = table.querySelectorAll('td[data-word]');"
+ s txt=txt_"    cells.forEach(c => {"
+ s txt=txt_"      const wordNum = parseInt(c.getAttribute('data-word'));"
+ s txt=txt_"      if (wordNum >= startTrop && wordNum <= endTrop) {"
+ s txt=txt_"        c.classList.add('highlight-trop');"
+ s txt=txt_"      } else {"
+ s txt=txt_"        c.classList.remove('highlight-trop');"
+ s txt=txt_"      }"
+ s txt=txt_"      if (wordNum >= startSyntax && wordNum <= endSyntax) {"
+ s txt=txt_"        c.classList.add('highlight-syntax');"
+ s txt=txt_"      } else {"
+ s txt=txt_"        c.classList.remove('highlight-syntax');"
+ s txt=txt_"      }"
+ s txt=txt_"    });"
+ s txt=txt_"  });"
+ s txt=txt_"}"
+ s txt=txt_"</script>"
+ d add(txt)
+ ; Add CSS for highlighting
+ s txt="<style>"
+ s txt=txt_".highlight-trop {"
+ s txt=txt_"  border: 2px solid orange;"
+ s txt=txt_"  background-color: rgba(255, 165, 0, 0.2);"
+ s txt=txt_"}"
+ s txt=txt_".highlight-syntax {"
+ s txt=txt_"  border: 2px solid blue;"
+ s txt=txt_"  background-color: rgba(0, 0, 255, 0.2);"
+ s txt=txt_"}"
+ s txt=txt_"</style>"
+ d add(txt)
  q
  ;
 getTaam(posuk,i) ; for ith word
