@@ -20,6 +20,20 @@ generateAllVerses ; Generate output for all verses in ^torah2 with optional mism
  . f versen=1:1 q:'$d(^torah2(bookn,versen))  d generateVerseOutput(bookn,versen)
  . d includeFile("footer.html")
  . d writeout^mkrqr1(bookn,glb1,"allVerses"_bookName,"QRCode\out","html") ; output to file
+ . ; Add inline script to trigger highlighting for all verses with mismatches on page load
+ . s txt="<script>"
+ . s txt=txt_"document.addEventListener('DOMContentLoaded', function() {"
+ . s txt=txt_"  const containers = document.querySelectorAll('.verse-container');"
+ . s txt=txt_"  containers.forEach(container => {"
+ . s txt=txt_"    const chap = container.getAttribute('data-chap');"
+ . s txt=txt_"    const verse = container.getAttribute('data-verse');"
+ . s txt=txt_"    if (container.querySelector('input[type=\"radio\"][name=\"mismatch-select-' + chap + '-' + verse + '\"]')) {"
+ . s txt=txt_"      highlightWordRange(null, chap, verse);"
+ . s txt=txt_"    }"
+ . s txt=txt_"  });"
+ . s txt=txt_"});"
+ . s txt=txt_"</script>"
+ . d add(txt)
  . k @glb1
  q
  ;
@@ -244,14 +258,6 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  ; Removed the mismatch-info section as it's now handled above with radio buttons
  d add("</div>") ; end verse-container
  d add("<br />")
- ; Add inline script to trigger highlighting on page load for the first mismatch
- i mismatchCnt>0 d
- . s txt="<script>"
- . s txt=txt_"document.addEventListener('DOMContentLoaded', function() {"
- . s txt=txt_"  highlightWordRange(null, "_chap_", "_verse_");"
- . s txt=txt_"});"
- . s txt=txt_"</script>"
- . d add(txt)
  q
  ;
 getTaam(posuk,i) ; for ith word

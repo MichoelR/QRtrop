@@ -43,17 +43,22 @@ function highlightWordRange(cell, chap, verse) {
   const startSyntax = parseInt(syntaxRange[0]);
   const endSyntax = parseInt(syntaxRange[1]);
   const tables = container.querySelectorAll('.segment-table');
+   console.log('Tables found:', tables.length);
   tables.forEach(table => {
     const cells = table.querySelectorAll('td[data-word]');
+     console.log('Cells found in table:', cells.length);
     cells.forEach(c => {
+       c.classList.remove('highlight-trop', 'highlight-syntax'); // Ensure previous highlights are cleared
       const wordNum = parseInt(c.getAttribute('data-word'));
       if (wordNum >= startTrop && wordNum <= endTrop) {
         c.classList.add('highlight-trop');
+         console.log('Added highlight-trop to word:', wordNum);
       } else {
         c.classList.remove('highlight-trop');
       }
       if (wordNum >= startSyntax && wordNum <= endSyntax) {
         c.classList.add('highlight-syntax');
+         console.log('Added highlight-syntax to word:', wordNum);
       } else {
         c.classList.remove('highlight-syntax');
       }
