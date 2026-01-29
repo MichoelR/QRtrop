@@ -138,8 +138,10 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  d add($$zconvert^mkrutl(txt,"O","UTF8"))
  ;
  d add("<div class='table-container'>")
- ; Determine how many words per segment (e.g., 10 words per segment)
- S segmentSize=10
+ ; Determine how many words per segment dynamically based on total words
+ ; Aim for segments of around 10 words, but adjust if total is very large or small
+ S totalWords=maxWord-minWord+1
+ S segmentSize=$S(totalWords>30:15,totalWords>15:10,1:8)
  S currentWord=maxWord
  S segmentCount=0
  WHILE currentWord >= minWord D
