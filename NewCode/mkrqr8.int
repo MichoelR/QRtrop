@@ -21,6 +21,9 @@ generateAllVerses ; Generate output for all verses in ^torah2 with optional mism
  . d includeFile("footer.html")
  . d writeout^mkrqr1(bookn,glb1,"allVerses"_bookName,"QRCode\out","html") ; output to file
  . k @glb1
+ ; Include the JavaScript and CSS files for mismatch highlighting in the header or footer
+ d includeFile("verseDisplay.js")
+ d includeFile("highlight.css")
  q
  ;
 generateVerseOutput(bookn,versen) ; Generate output for a specific verse, including all words and mismatches if any
