@@ -22,7 +22,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const pairParts = [...parts];
         pairParts[dirIndex] = pairDirection;
         const pairId = pairParts.join('-');
-        const pairSpan = document.getElementById(pairId);
+        // Search for the pair within the same table
+        const pairSpan = table.querySelector(`[id="${pairId}"]`);
         if (pairSpan) {
           pairSpan.classList.add('highlight-pair');
         }
@@ -35,12 +36,12 @@ document.addEventListener('DOMContentLoaded', function() {
           if (parts[dirIndex] === 'L') {
             leftParen = span; // this is the left paren
           } else {
-            // find the paired left paren
+            // find the paired left paren within the same table
             const pairDirection = 'L';
             const pairParts = [...parts];
             pairParts[dirIndex] = pairDirection;
             const pairId = pairParts.join('-');
-            leftParen = document.getElementById(pairId);
+            leftParen = table.querySelector(`[id="${pairId}"]`);
           }
           if (leftParen) {
             const td = leftParen.closest('td');
@@ -55,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         // Handle overlaps
         const overlappingWords = new Set();
-        document.querySelectorAll('.highlight-trop-bright.highlight-syntax-bright').forEach(td => {
+        table.querySelectorAll('.highlight-trop-bright.highlight-syntax-bright').forEach(td => {
           overlappingWords.add(td.dataset.word);
         });
         overlappingWords.forEach(word => {
@@ -89,7 +90,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const pairParts = [...parts];
         pairParts[dirIndex] = pairDirection;
         const pairId = pairParts.join('-');
-        const pairSpan = document.getElementById(pairId);
+        // Search for the pair within the same table
+        const pairSpan = table.querySelector(`[id="${pairId}"]`);
         if (pairSpan) {
           pairSpan.classList.remove('highlight-pair');
         }
@@ -102,12 +104,12 @@ document.addEventListener('DOMContentLoaded', function() {
           if (parts[dirIndex] === 'L') {
             leftParen = span; // this is the left paren
           } else {
-            // find the paired left paren
+            // find the paired left paren within the same table
             const pairDirection = 'L';
             const pairParts = [...parts];
             pairParts[dirIndex] = pairDirection;
             const pairId = pairParts.join('-');
-            leftParen = document.getElementById(pairId);
+            leftParen = table.querySelector(`[id="${pairId}"]`);
           }
           if (leftParen) {
             const td = leftParen.closest('td');
@@ -130,9 +132,11 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!mismatchDiv) return;
       const tropSpan = mismatchDiv.querySelector('.verse-trop');
       const syntaxSpan = mismatchDiv.querySelector('.verse-syntax');
+      if (!tropSpan || !syntaxSpan) return;
       const [tropStart, tropEnd] = tropSpan.dataset.words.split('-').map(Number);
       const [syntaxStart, syntaxEnd] = syntaxSpan.dataset.words.split('-').map(Number);
-      const table = mismatchDiv.nextElementSibling;
+      // Find the associated table - it should be the next sibling after the mismatch_data div
+      const table = mismatchDiv.nextElementSibling && mismatchDiv.nextElementSibling.tagName === 'TABLE' ? mismatchDiv.nextElementSibling : null;
       if (table) {
         if (!this.closest('td')) {
           // Compute overlap words
@@ -173,9 +177,11 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!mismatchDiv) return;
       const tropSpan = mismatchDiv.querySelector('.verse-trop');
       const syntaxSpan = mismatchDiv.querySelector('.verse-syntax');
+      if (!tropSpan || !syntaxSpan) return;
       const [tropStart, tropEnd] = tropSpan.dataset.words.split('-').map(Number);
       const [syntaxStart, syntaxEnd] = syntaxSpan.dataset.words.split('-').map(Number);
-      const table = mismatchDiv.nextElementSibling;
+      // Find the associated table - it should be the next sibling after the mismatch_data div
+      const table = mismatchDiv.nextElementSibling && mismatchDiv.nextElementSibling.tagName === 'TABLE' ? mismatchDiv.nextElementSibling : null;
       if (table) {
         // Remove all highlights
         for (let w = Math.min(tropStart, syntaxStart); w <= Math.max(tropEnd, syntaxEnd); w++) {
@@ -225,13 +231,14 @@ document.addEventListener('DOMContentLoaded', function() {
       const pairParts = [...parts];
       pairParts[dirIndex] = pairDirection;
       const pairId = pairParts.join('-');
-      const rightParen = document.getElementById(pairId);
+      // Search for the pair within the same table
+      const rightParen = table.querySelector(`[id="${pairId}"]`);
       if (rightParen) {
         rightParen.classList.add('highlight-pair');
       }
       // Handle overlaps
       const overlappingWords = new Set();
-      document.querySelectorAll('.highlight-trop-bright.highlight-syntax-bright').forEach(td => {
+      table.querySelectorAll('.highlight-trop-bright.highlight-syntax-bright').forEach(td => {
         overlappingWords.add(td.dataset.word);
       });
       overlappingWords.forEach(word => {
@@ -273,7 +280,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const pairParts = [...parts];
       pairParts[dirIndex] = pairDirection;
       const pairId = pairParts.join('-');
-      const rightParen = document.getElementById(pairId);
+      // Search for the pair within the same table
+      const rightParen = table.querySelector(`[id="${pairId}"]`);
       if (rightParen) {
         rightParen.classList.remove('highlight-pair');
       }
