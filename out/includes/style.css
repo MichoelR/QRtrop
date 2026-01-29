@@ -37,3 +37,16 @@ td {border: 1px solid black; padding: 5px; text-align: right; white-space: nowra
 }
 .mismatch_data {margin-bottom: 10px; font-weight: bold;}
 
+/* Styles for mismatch tables to align right for RTL text */
+.table-container {
+  direction: rtl;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.segment-table {
+  margin-left: auto;
+  margin-right: 0;
+}
+
