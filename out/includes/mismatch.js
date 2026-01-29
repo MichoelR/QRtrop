@@ -367,6 +367,7 @@ function highlightRangeAcrossTables(container, startWord, endWord, color) {
   const startTableIndex = tables.indexOf(startTable);
   const endTableIndex = tables.indexOf(endTable);
   const totalTables = Math.abs(endTableIndex - startTableIndex) + 1;
+  const step = startTableIndex < endTableIndex ? 1 : -1;
 
   if (startTable === endTable) {
     // If start and end are in the same table, highlight the range in that table
@@ -389,19 +390,19 @@ function highlightRangeAcrossTables(container, startWord, endWord, color) {
       // Tables are ordered top-to-bottom, start table is above end table
       if (isStartLower) {
         // Start word is lower, so it should be on the left, highlight from start to right end of table (left to right in visual order)
-        highlightCellRange(startTable, 1, 1, 1, startIndex, color === 'orange' ? 4 : -4, 1.5, color, totalTables > 2 ? 'start' : 'start');
+        highlightCellRange(startTable, 1, 1, 1, startIndex, color === 'orange' ? 4 : -4, 1.5, color, 'start');
       } else {
         // Start word is higher, so it should be on the right, highlight from start to left end of table (right to left in visual order)
-        highlightCellRange(startTable, 1, startIndex, 1, startTableCells.length, color === 'orange' ? 4 : -4, 1.5, color, totalTables > 2 ? 'start' : 'start');
+        highlightCellRange(startTable, 1, startIndex, 1, startTableCells.length, color === 'orange' ? 4 : -4, 1.5, color, 'start');
       }
     } else {
       // Start table is below end table
       if (isStartLower) {
         // Start word is lower, so it should be on the left, highlight from start to right end of table (left to right in visual order)
-        highlightCellRange(startTable, 1, 1, 1, startIndex, color === 'orange' ? 4 : -4, 1.5, color, totalTables > 2 ? 'end' : 'end');
+        highlightCellRange(startTable, 1, 1, 1, startIndex, color === 'orange' ? 4 : -4, 1.5, color, 'end');
       } else {
         // Start word is higher, so it should be on the right, highlight from start to left end of table (right to left in visual order)
-        highlightCellRange(startTable, 1, startIndex, 1, startTableCells.length, color === 'orange' ? 4 : -4, 1.5, color, totalTables > 2 ? 'end' : 'end');
+        highlightCellRange(startTable, 1, startIndex, 1, startTableCells.length, color === 'orange' ? 4 : -4, 1.5, color, 'end');
       }
     }
 
@@ -411,25 +412,24 @@ function highlightRangeAcrossTables(container, startWord, endWord, color) {
       // End table is below start table
       if (isStartLower) {
         // End word is higher, so it should be on the right, highlight from left start to end (right to left in visual order)
-        highlightCellRange(endTable, 1, endIndex, 1, endTableCells.length, color === 'orange' ? 4 : -4, 1.5, color, totalTables > 2 ? 'end' : 'end');
+        highlightCellRange(endTable, 1, endIndex, 1, endTableCells.length, color === 'orange' ? 4 : -4, 1.5, color, 'end');
       } else {
         // End word is lower, so it should be on the left, highlight from end to right end of table (left to right in visual order)
-        highlightCellRange(endTable, 1, 1, 1, endIndex, color === 'orange' ? 4 : -4, 1.5, color, totalTables > 2 ? 'end' : 'end');
+        highlightCellRange(endTable, 1, 1, 1, endIndex, color === 'orange' ? 4 : -4, 1.5, color, 'end');
       }
     } else {
       // End table is above start table
       if (isStartLower) {
         // End word is higher, so it should be on the right, highlight from left start to end (right to left in visual order)
-        highlightCellRange(endTable, 1, endIndex, 1, endTableCells.length, color === 'orange' ? 4 : -4, 1.5, color, totalTables > 2 ? 'start' : 'start');
+        highlightCellRange(endTable, 1, endIndex, 1, endTableCells.length, color === 'orange' ? 4 : -4, 1.5, color, 'start');
       } else {
         // End word is lower, so it should be on the left, highlight from end to right end of table (left to right in visual order)
-        highlightCellRange(endTable, 1, 1, 1, endIndex, color === 'orange' ? 4 : -4, 1.5, color, totalTables > 2 ? 'start' : 'start');
+        highlightCellRange(endTable, 1, 1, 1, endIndex, color === 'orange' ? 4 : -4, 1.5, color, 'start');
       }
     }
 
     // Highlight all tables between startTable and endTable
-    const step = startTableIndex < endTableIndex ? 1 : -1;
-    for (let i = startTableIndex + step; i !== endTableIndex; i += step) {
+    for (let i = Math.min(startTableIndex, endTableIndex) + 1; i < Math.max(startTableIndex, endTableIndex); i++) {
       const midTable = tables[i];
       const midCells = Array.from(midTable.rows[0].cells);
       highlightCellRange(midTable, 1, 1, 1, midCells.length, color === 'orange' ? 4 : -4, 1.5, color, 'middle');
