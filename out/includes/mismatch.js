@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
         // Highlight matching bracket
-        const dirIndex = isTrope ? 7 : 9;
+        const dirIndex = parts.length - 1; // Last part is always the direction
         const direction = parts[dirIndex];
         const pairDirection = direction === 'L' ? 'R' : 'L';
         const pairParts = [...parts];
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
         // Remove highlight from matching bracket
-        const dirIndex = isTrope ? 7 : 9;
+        const dirIndex = parts.length - 1; // Last part is always the direction
         const direction = parts[dirIndex];
         const pairDirection = direction === 'L' ? 'R' : 'L';
         const pairParts = [...parts];
@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Highlight left paren
       leftParen.classList.add('highlight-pair');
       // Highlight right paren (paired)
-      const dirIndex = isTrope ? 7 : 9;
+      const dirIndex = parts.length - 1; // Last part is always the direction
       const direction = parts[dirIndex];
       const pairDirection = direction === 'L' ? 'R' : 'L';
       const pairParts = [...parts];
@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Remove left paren highlight
       leftParen.classList.remove('highlight-pair');
       // Remove right paren highlight
-      const dirIndex = isTrope ? 7 : 9;
+      const dirIndex = parts.length - 1; // Last part is always the direction
       const direction = parts[dirIndex];
       const pairDirection = direction === 'L' ? 'R' : 'L';
       const pairParts = [...parts];
