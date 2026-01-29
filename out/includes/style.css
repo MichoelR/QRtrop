@@ -41,7 +41,15 @@ td {border: 1px solid black; padding: 5px; text-align: right; white-space: nowra
 }
 
 /* Styles for mismatch tables to align right */
-.mismatch-table {
+.table-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.segment-table {
   margin-left: auto;
   margin-right: 0;
   position: relative;

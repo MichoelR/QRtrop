@@ -135,9 +135,9 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!tropSpan || !syntaxSpan) return;
       const [tropStart, tropEnd] = tropSpan.dataset.words.split('-').map(Number);
       const [syntaxStart, syntaxEnd] = syntaxSpan.dataset.words.split('-').map(Number);
-      // Find the associated table - it should be the next sibling after the mismatch_data div
-      const table = mismatchDiv.nextElementSibling && mismatchDiv.nextElementSibling.tagName === 'TABLE' ? mismatchDiv.nextElementSibling : null;
-      if (table) {
+      // Find the associated container - it should be the next sibling after the mismatch_data div
+      const container = mismatchDiv.nextElementSibling && mismatchDiv.nextElementSibling.classList.contains('table-container') ? mismatchDiv.nextElementSibling : null;
+      if (container) {
         if (!this.closest('td')) {
           // Compute overlap words
           const overlapWords = new Set();
@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
           if (this.classList.contains('verse-trop')) {
             // Hovering over trop words: highlight trop-only gold, overlap violet
             for (let w = tropStart; w <= tropEnd; w++) {
-              const td = table.querySelector(`td[data-word="${w}"]`);
+              const td = container.querySelector(`td[data-word="${w}"]`);
               if (td) {
                 if (overlapWords.has(w)) {
                   td.classList.add('highlight-overlap');
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
           } else if (this.classList.contains('verse-syntax')) {
             // Hovering over syntax words: highlight syntax-only lightblue, overlap violet
             for (let w = syntaxStart; w <= syntaxEnd; w++) {
-              const td = table.querySelector(`td[data-word="${w}"]`);
+              const td = container.querySelector(`td[data-word="${w}"]`);
               if (td) {
                 if (overlapWords.has(w)) {
                   td.classList.add('highlight-overlap');
@@ -180,12 +180,12 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!tropSpan || !syntaxSpan) return;
       const [tropStart, tropEnd] = tropSpan.dataset.words.split('-').map(Number);
       const [syntaxStart, syntaxEnd] = syntaxSpan.dataset.words.split('-').map(Number);
-      // Find the associated table - it should be the next sibling after the mismatch_data div
-      const table = mismatchDiv.nextElementSibling && mismatchDiv.nextElementSibling.tagName === 'TABLE' ? mismatchDiv.nextElementSibling : null;
-      if (table) {
+      // Find the associated container - it should be the next sibling after the mismatch_data div
+      const container = mismatchDiv.nextElementSibling && mismatchDiv.nextElementSibling.classList.contains('table-container') ? mismatchDiv.nextElementSibling : null;
+      if (container) {
         // Remove all highlights
         for (let w = Math.min(tropStart, syntaxStart); w <= Math.max(tropEnd, syntaxEnd); w++) {
-          const td = table.querySelector(`td[data-word="${w}"]`);
+          const td = container.querySelector(`td[data-word="${w}"]`);
           if (td) {
             td.classList.remove('highlight-overlap', 'highlight-trop-bright', 'highlight-syntax-bright');
           }
@@ -197,12 +197,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Add listeners for mafsik (last trop in trope row)
 document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('table tr:nth-child(2) .verse-trop').forEach(span => {  // second row is trope row
+  document.querySelectorAll('.segment-table tr:nth-child(2) .verse-trop').forEach(span => {  // second row is trope row
     // Only add listeners if it's a mafsik: has a left paren directly to its left
     if (!span.previousElementSibling || !span.previousElementSibling.classList.contains('branch-end')) return;
     span.addEventListener('mouseover', function() {
-      const table = this.closest('table');
-      if (!table) return;
+      const container = this.closest('.table-container');
+      if (!container) return;
       // Get left paren
       const leftParen = this.previousElementSibling;
       if (!leftParen || !leftParen.classList.contains('branch-end')) return;
@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const isTrope = id.startsWith('trop-');
       // Highlight word range
       for (let w = start; w <= end; w++) {
-        const td = table.querySelector(`td[data-word="${w}"]`);
+        const td = container.querySelector(`td[data-word="${w}"]`);
         if (td) {
           td.classList.add(isTrope ? 'highlight-trop-bright' : 'highlight-syntax-bright');
         }
@@ -231,17 +231,18 @@ document.addEventListener('DOMContentLoaded', function() {
       const pairParts = [...parts];
       pairParts[dirIndex] = pairDirection;
       const pairId = pairParts.join('-');
-      const rightParen = document.getElementById(pairId);
+      // Search for the pair within the same container
+      const rightParen = container.querySelector(`[id="${pairId}"]`);
       if (rightParen) {
         rightParen.classList.add('highlight-pair');
       }
       // Handle overlaps
       const overlappingWords = new Set();
-      document.querySelectorAll('.highlight-trop-bright.highlight-syntax-bright').forEach(td => {
+      container.querySelectorAll('.highlight-trop-bright.highlight-syntax-bright').forEach(td => {
         overlappingWords.add(td.dataset.word);
       });
       overlappingWords.forEach(word => {
-        const td = table.querySelector('td[data-word="' + word + '"]');
+        const td = container.querySelector('td[data-word="' + word + '"]');
         if (td) {
           td.classList.remove('highlight-trop-bright', 'highlight-syntax-bright');
           td.classList.add('highlight-overlap');
@@ -249,8 +250,8 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
     span.addEventListener('mouseout', function() {
-      const table = this.closest('table');
-      if (!table) return;
+      const container = this.closest('.table-container');
+      if (!container) return;
       // Get left paren
       const leftParen = this.previousElementSibling;
       if (!leftParen || !leftParen.classList.contains('branch-end')) return;
@@ -263,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const isTrope = id.startsWith('trop-');
       // Remove word highlights
       for (let w = start; w <= end; w++) {
-        const td = table.querySelector(`td[data-word="${w}"]`);
+        const td = container.querySelector(`td[data-word="${w}"]`);
         if (td) {
           td.classList.remove(isTrope ? 'highlight-trop-bright' : 'highlight-syntax-bright', 'highlight-overlap');
         }
@@ -279,7 +280,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const pairParts = [...parts];
       pairParts[dirIndex] = pairDirection;
       const pairId = pairParts.join('-');
-      const rightParen = document.getElementById(pairId);
+      // Search for the pair within the same container
+      const rightParen = container.querySelector(`[id="${pairId}"]`);
       if (rightParen) {
         rightParen.classList.remove('highlight-pair');
       }
@@ -291,8 +293,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        const table = entry.target;
-        const mismatchDiv = table.previousElementSibling;
+        const container = entry.target;
+        const mismatchDiv = container.previousElementSibling;
         if (!mismatchDiv) return;
         if (!mismatchDiv.classList.contains('mismatch_data')) return;
 
@@ -302,30 +304,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const [tropStart, tropEnd] = tropSpan.dataset.words.split('-').map(Number);
         const [syntaxStart, syntaxEnd] = syntaxSpan.dataset.words.split('-').map(Number);
 
-        const row = table.rows[0]; // words row
-        const cells = Array.from(row.cells);
+        // Remove any existing highlights in the container to prevent duplicates
+        container.querySelectorAll('.cell-highlight').forEach(h => h.remove());
 
-        // For trope
-        const tropCells = cells.filter(td => {
-          const w = +td.dataset.word;
-          return w >= tropStart && w <= tropEnd;
-        });
-        if (tropCells.length) {
-          const startCol = cells.indexOf(tropCells[0]) + 1;
-          const endCol = cells.indexOf(tropCells[tropCells.length - 1]) + 1;
-          highlightCellRange(table, 1, startCol, 1, endCol, 4, 1.5, 'orange'); // borderPx=4 for trope
-        }
-
-        // For syntax
-        const syntaxCells = cells.filter(td => {
-          const w = +td.dataset.word;
-          return w >= syntaxStart && w <= syntaxEnd;
-        });
-        if (syntaxCells.length) {
-          const startCol = cells.indexOf(syntaxCells[0]) + 1;
-          const endCol = cells.indexOf(syntaxCells[syntaxCells.length - 1]) + 1;
-          highlightCellRange(table, 1, startCol, 1, endCol, -4, 1.5, 'blue'); // borderPx=-4 for syntax
-        }
+        // Highlight trope range across all relevant tables
+        highlightRangeAcrossTables(container, tropStart, tropEnd, 'orange');
+        
+        // Highlight syntax range across all relevant tables
+        highlightRangeAcrossTables(container, syntaxStart, syntaxEnd, 'blue');
 
         // Add colored borders to mismatch_data spans to match highlight colors
         if (tropSpan) {
@@ -339,15 +325,68 @@ document.addEventListener('DOMContentLoaded', function() {
           syntaxSpan.style.display = 'inline-block';
         }
 
-        observer.unobserve(table);
+        observer.unobserve(container);
       }
     });
   });
 
-  document.querySelectorAll('.mismatch-table').forEach(table => {
-    observer.observe(table);
+  document.querySelectorAll('.table-container').forEach(container => {
+    observer.observe(container);
   });
 });
+
+function highlightRangeAcrossTables(container, startWord, endWord, color) {
+  const tables = Array.from(container.querySelectorAll('.segment-table'));
+  if (!tables.length) return;
+
+  // Find the tables that contain the start and end words
+  let startTable = null, endTable = null;
+  let startCell = null, endCell = null;
+
+  tables.forEach(table => {
+    const cells = Array.from(table.rows[0].cells);
+    cells.forEach(cell => {
+      const wordNum = parseInt(cell.dataset.word);
+      if (wordNum === startWord && !startCell) {
+        startTable = table;
+        startCell = cell;
+      }
+      if (wordNum === endWord && !endCell) {
+        endTable = table;
+        endCell = cell;
+      }
+    });
+  });
+
+  if (!startCell || !endCell) return;
+
+  if (startTable === endTable) {
+    // If start and end are in the same table, highlight the range in that table
+    const cells = Array.from(startTable.rows[0].cells);
+    const startIndex = cells.indexOf(startCell) + 1;
+    const endIndex = cells.indexOf(endCell) + 1;
+    highlightCellRange(startTable, 1, startIndex, 1, endIndex, color === 'orange' ? 4 : -4, 1.5, color);
+  } else {
+    // If start and end are in different tables, highlight from start to end of startTable
+    // and from beginning to end in endTable, and full tables in between
+    const startTableCells = Array.from(startTable.rows[0].cells);
+    const startIndex = startTableCells.indexOf(startCell) + 1;
+    highlightCellRange(startTable, 1, startIndex, 1, startTableCells.length, color === 'orange' ? 4 : -4, 1.5, color);
+
+    const endTableCells = Array.from(endTable.rows[0].cells);
+    const endIndex = endTableCells.indexOf(endCell) + 1;
+    highlightCellRange(endTable, 1, 1, 1, endIndex, color === 'orange' ? 4 : -4, 1.5, color);
+
+    // Highlight all tables between startTable and endTable
+    const startTableIndex = tables.indexOf(startTable);
+    const endTableIndex = tables.indexOf(endTable);
+    for (let i = startTableIndex + 1; i < endTableIndex; i++) {
+      const midTable = tables[i];
+      const midCells = Array.from(midTable.rows[0].cells);
+      highlightCellRange(midTable, 1, 1, 1, midCells.length, color === 'orange' ? 4 : -4, 1.5, color);
+    }
+  }
+}
 
 function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, borderPx = 3, borderThickPx = 1, color = 'red') {
   // Remove any existing highlights to prevent duplicates

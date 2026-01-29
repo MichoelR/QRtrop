@@ -137,46 +137,70 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  s txt=txt_"<span class='verse-syntax' data-words='"_wrd20_"-"_wrd2_"'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</div>"
  d add($$zconvert^mkrutl(txt,"O","UTF8"))
  ;
- d add("<table class='mismatch-table'>")
- d add("<tr>")
- ; Row 2: Words - RTL
- s row2=""
- F i=maxWord:-1:minWord D
- . S word=posuk(i) ; number of characters
- . S row2 = row2 _ "<td data-word='"_i_"'>"_word_"</td>"
- d add($$zconvert^mkrutl(row2,"O","UTF8"))
- d add("</tr>")
- ;
- d add("<tr>")
- ; Row 3: trops - LTR build, RTL display
- s row3="" ; build string RTL
+ d add("<div class='table-container'>")
+ ; Determine how many words per segment dynamically based on total words and syntax complexity
+ ; Aim for segments of around 10 words, but reduce if there are many syntax elements per word
+ S totalWords=maxWord-minWord+1
+ ; Calculate complexity based on number of syntax elements
+ S complexity=0
  F i=minWord:1:maxWord D
- . S tropL=$g(revTrops(i,"L")),trop=$g(revTrops(i)),tropR=$g(revTrops(i,"R"))
- . S tropClass="verse-trop"_$S(i=wrd1:" mismatch-pair",1:"")
- . S row3 = "<td>"_tropL_"<span class='"_tropClass_"'>"_$zstrip(trop,"<W")_"</span>"_tropR_"</td>" _ row3
- d add(row3)
- d add("</tr>")
- ;
- d add("<tr>")
- ; Row 4: Syntax - RTL
- F i=maxWord:-1:minWord D  ; leaf syntax
- . d add("<td>")
- . S j="" F  S j=$o(revSyn(i,j),-1) q:j=""  d  ; word-part
- .. S partTxt=""
- .. F k="L",0,"R" i $d(revSyn(i,j,k)) d  ; leaf or syntax branch ends
- ... S class=$s(k=0:"syntax-part",k="L":"branch-end",k="R":"branch-start",1:"")
- ... I k="L" F cnt=$g(revSyn(i,j,k,0)):-1:1 d  ; maybe several on one part, esp. ('s
- .... S part=revSyn(i,j,k,cnt)
- .... S partTxt=partTxt_part
- ... E  F cnt=1:1:$g(revSyn(i,j,k,0)) d  ; maybe several on one part, esp. ('s
- .... S part=revSyn(i,j,k,cnt)
- .... S partTxt=partTxt_part
- .. d add(partTxt)
- . d add("</td>")
- d add("</tr>")
- ;
- d add("")
- d add("</table>")
+ . S j="" F  S j=$o(revSyn(i,j)) q:j=""  D
+ .. F k="L",0,"R" I $D(revSyn(i,j,k)) D
+ ... S cnt=$G(revSyn(i,j,k,0),0)
+ ... S complexity=complexity+cnt
+ ; Adjust segment size based on total words and complexity
+ S avgComplexityPerWord=$S(totalWords>0:complexity/totalWords,1:1)
+ S segmentSize=$S(totalWords>30:15,totalWords>15:10,1:8)
+ I avgComplexityPerWord>2 S segmentSize=$S(segmentSize>10:segmentSize-2,1:segmentSize-1)
+ I avgComplexityPerWord>4 S segmentSize=$S(segmentSize>8:segmentSize-2,1:segmentSize-1)
+ S segmentSize=$S(segmentSize<5:5,1:segmentSize) ; Ensure minimum segment size
+ S currentWord=maxWord
+ S segmentCount=0
+ F  Q:currentWord<minWord  D
+ . S segmentStart=currentWord
+ . S segmentEnd=$S(currentWord-segmentSize+1<minWord:minWord,1:currentWord-segmentSize+1)
+ . S segmentCount=segmentCount+1
+ . d add("<table class='segment-table' data-segment='"_segmentCount_"'>")
+ . 
+ . ; Row: Words
+ . d add("<tr>")
+ . s rowWords=""
+ . F i=segmentStart:-1:segmentEnd D
+ .. S word=posuk(i) ; number of characters
+ .. S rowWords = rowWords _ "<td data-word='"_i_"'>"_word_"</td>"
+ . d add($$zconvert^mkrutl(rowWords,"O","UTF8"))
+ . d add("</tr>")
+ . 
+ . ; Row: trops
+ . d add("<tr>")
+ . s rowTrops="" ; build string
+ . F i=segmentEnd:1:segmentStart D
+ .. S tropL=$g(revTrops(i,"L")),trop=$g(revTrops(i)),tropR=$g(revTrops(i,"R"))
+ .. S tropClass="verse-trop"_$S(i=wrd1:" mismatch-pair",1:"")
+ .. S rowTrops = rowTrops _ "<td>"_tropL_"<span class='"_tropClass_"'>"_$zstrip(trop,"<W")_"</span>"_tropR_"</td>"
+ . d add(rowTrops)
+ . d add("</tr>")
+ . 
+ . ; Row: Syntax
+ . d add("<tr>")
+ . F i=segmentStart:-1:segmentEnd D  ; leaf syntax
+ .. d add("<td>")
+ .. S j="" F  S j=$o(revSyn(i,j),-1) q:j=""  d  ; word-part
+ ... S partTxt=""
+ ... F k="L",0,"R" i $d(revSyn(i,j,k)) d  ; leaf or syntax branch ends
+ .... S class=$s(k=0:"syntax-part",k="L":"branch-end",k="R":"branch-start",1:"")
+ .... I k="L" F cnt=$g(revSyn(i,j,k,0)):-1:1 d  ; maybe several on one part, esp. ('s
+ ..... S part=revSyn(i,j,k,cnt)
+ ..... S partTxt=partTxt_part
+ .... E  F cnt=1:1:$g(revSyn(i,j,k,0)) d  ; maybe several on one part, esp. ('s
+ ..... S part=revSyn(i,j,k,cnt)
+ ..... S partTxt=partTxt_part
+ ... d add(partTxt)
+ .. d add("</td>")
+ . d add("</tr>")
+ . d add("</table>")
+ . S currentWord=segmentEnd-1
+ d add("</div>")
  d add("<br/>")
  d add("<br/>")
  q
