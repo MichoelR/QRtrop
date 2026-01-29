@@ -67,10 +67,11 @@ checkMismatch(book,verse,lvl1,wrd1,lvl2,wrd2,wrdpart,mismatches,mismatchCnt) ; c
  q
  ;
 displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words and optional mismatches
- ; Inputs: bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2,wrdpart
+ ; Inputs: bookn,versen
  ; Output: 4-row monospaced text display, all RTL
  N posuk,wrds,wrdcnt,i,j,k,level,level0,endWord,partIdx
  N startWord,nodeType,part,trop,minWord,maxWord,prefix,revTrops,revSyn,mismatchIdx
+ N lvl1,wrd10,wrd1,lvl2,wrd20,wrd2
  ;
  M posuk=^torah2(bookn,versen) ; all verse info
  ; Get verse data
@@ -86,6 +87,9 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  . ; Trops - build list
  . S trop=$$getTaam(.posuk,i)
  . S revTrops(i)=trop
+ ;
+ ; Initialize mismatch variables to avoid UNDEF errors when no mismatches exist
+ S lvl1="",wrd10=0,wrd1=0,lvl2="",wrd20=0,wrd2=0
  ;
  F level=4:-1:1 D ; sections begin and end, enclose in ( )
  . s endWord="" f  s endWord=$o(posuk("lvls",level,endWord)) q:endWord=""  D
