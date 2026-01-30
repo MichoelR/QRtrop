@@ -135,8 +135,10 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!tropSpan || !syntaxSpan) return;
       const [tropStart, tropEnd] = tropSpan.dataset.words.split('-').map(Number);
       const [syntaxStart, syntaxEnd] = syntaxSpan.dataset.words.split('-').map(Number);
-      // Find the associated container - it should be the next sibling after the mismatch-data div
-      const container = mismatchDiv.nextElementSibling && mismatchDiv.nextElementSibling.classList.contains('table-container') ? mismatchDiv.nextElementSibling : null;
+      // Find the associated container within the same verse-container
+      const verseContainer = mismatchDiv.closest('.verse-container');
+      if (!verseContainer) return;
+      const container = verseContainer.querySelector('.table-container');
       if (container) {
         if (!this.closest('td')) {
           // Compute overlap words
@@ -180,8 +182,10 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!tropSpan || !syntaxSpan) return;
       const [tropStart, tropEnd] = tropSpan.dataset.words.split('-').map(Number);
       const [syntaxStart, syntaxEnd] = syntaxSpan.dataset.words.split('-').map(Number);
-      // Find the associated container - it should be the next sibling after the mismatch-data div
-      const container = mismatchDiv.nextElementSibling && mismatchDiv.nextElementSibling.classList.contains('table-container') ? mismatchDiv.nextElementSibling : null;
+      // Find the associated container within the same verse-container
+      const verseContainer = mismatchDiv.closest('.verse-container');
+      if (!verseContainer) return;
+      const container = verseContainer.querySelector('.table-container');
       if (container) {
         // Remove all highlights
         for (let w = Math.min(tropStart, syntaxStart); w <= Math.max(tropEnd, syntaxEnd); w++) {
@@ -294,9 +298,10 @@ document.addEventListener('DOMContentLoaded', function() {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const container = entry.target;
-        const mismatchDiv = container.previousElementSibling;
+        const verseContainer = container.closest('.verse-container');
+        if (!verseContainer) return;
+        const mismatchDiv = verseContainer.querySelector('.mismatch-selector .mismatch-data');
         if (!mismatchDiv) return;
-        if (!mismatchDiv.classList.contains('mismatch-data')) return;
         const tropSpan = mismatchDiv.querySelector('.verse-trop');
         const syntaxSpan = mismatchDiv.querySelector('.verse-syntax');
         if (!tropSpan || !syntaxSpan) return;
@@ -304,11 +309,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const [syntaxStart, syntaxEnd] = syntaxSpan.dataset.words.split('-').map(Number);
 
         // Remove any existing highlights in the container to prevent duplicates
-        container.querySelectorAll('.cell-highlight').forEach(h => h.remove());
+        container.querySelectorAll('.cell-highlight-trop, .cell-highlight-syntax').forEach(h => h.remove());
 
         // Highlight trope range across all relevant tables
         highlightRangeAcrossTables(container, tropStart, tropEnd, 'orange');
-        
+
+
         // Highlight syntax range across all relevant tables
         highlightRangeAcrossTables(container, syntaxStart, syntaxEnd, 'blue');
 
@@ -446,21 +452,21 @@ function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, b
   const rowStarts = Array.from(table.rows).slice(startRow - 1, endRow);
   const firstCell = rowStarts[0] && rowStarts[0].cells[startCol - 1];
   const lastCell = rowStarts[rowStarts.length - 1] && rowStarts[rowStarts.length - 1].cells[endCol - 1];
-  
+
   if (!firstCell || !lastCell) return;
-  
+
   const firstRect = firstCell.getBoundingClientRect();
   const lastRect = lastCell.getBoundingClientRect();
-  
+
   const left = firstRect.left - rect.left - borderPx;
   const top = firstRect.top - rect.top - borderPx;
   const width = lastRect.right - firstRect.left + borderPx * 2;
   const height = lastRect.bottom - firstRect.top + borderPx * 2;
-  
+
   const highlight = document.createElement('div');
   highlight.className = 'cell-highlight cell-highlight-' + (color === 'orange' ? 'trop' : 'syntax') + ' ' + position;
   highlight.style.cssText = `position: absolute; top: ${top}px; left: ${left}px; width: ${width}px; height: ${height}px; border: ${borderThickPx}px solid ${color}; pointer-events: none; z-index: 100; box-sizing: border-box;`;
-  
+
   table.style.position = 'relative';
   table.style.overflow = 'visible';
   table.appendChild(highlight);
