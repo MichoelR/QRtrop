@@ -1,4 +1,8 @@
 Originals/out/*
 !Originals/out/includes/
 !Originals/out/includes/**
+Originals/outMismatch/*
+!Originals/outMismatch/includes/
+!Originals/outMismatch/includes/**
+
 .aider*
