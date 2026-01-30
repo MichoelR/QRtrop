@@ -72,6 +72,26 @@ document.addEventListener('DOMContentLoaded', function() {
         cells.forEach(cell => {
           cell.classList.remove('highlight-trop', 'highlight-syntax');
         });
+      // Remove highlight from associated word in the word row
+      if (selector.includes('trop')) {
+        const wordId = el.getAttribute('data-word-id');
+        if (wordId) {
+          const wordEl = container.querySelector(`td[data-word-id="${wordId}"]`);
+          if (wordEl) {
+            wordEl.classList.remove('highlight-word');
+          }
+        }
+      }
+      // For trop row, also highlight the associated word in the word row
+      if (selector.includes('trop')) {
+        const wordId = el.getAttribute('data-word-id');
+        if (wordId) {
+          const wordEl = container.querySelector(`td[data-word-id="${wordId}"]`);
+          if (wordEl) {
+            wordEl.classList.add('highlight-word');
+          }
+        }
+      }
       }
       highlightWordRange(null, chap, verse);
     });
