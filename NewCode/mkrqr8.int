@@ -141,6 +141,7 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  .... d aSP(.revSyn,maxWord,,"L",1,syntax,level,startWord,endWord,chap,verse,startPart,endPart,lvl2,wrd20,wrd2,mismatchCnt)
  ... E  d aSP(.revSyn,endWord,endPart,"L",,syntax,level,startWord,endWord,chap,verse,startPart,endPart,lvl2,wrd20,wrd2,mismatchCnt)
  ;
+ d add("<div class='verse-container' data-chap='"_chap_"' data-verse='"_verse_"'>")
  s txt="B'reishis "_chap_":"_verse_" "_$$zconvert^mkrutl(wrds,"O","UTF8")
  d add(txt)
  ; Mismatch selection with radio buttons if any

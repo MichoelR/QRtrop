@@ -23,9 +23,8 @@ findMismatch ; Find mismatches between trop (lvls) and syntax (fslvls) trees in 
  . k @glb1
  q
  ;
-generateVerseOutput(bookn,versen) ; Generate output for a specific verse, including all words and mismatches if any
+findMismatchVerse(bookn,versen) ; Find mismatches for a specific verse
  n lvls,fslvls,lvl1,wrd1,lvl2,wrd2,wrdpart,posuk
-  n mismatches,mismatchCnt,mismatchIdx
  ;
  M posuk=^torah2(bookn,versen) ; all verse info
  ; Get lvls (trop levels)
@@ -34,20 +33,12 @@ generateVerseOutput(bookn,versen) ; Generate output for a specific verse, includ
  ; Get fslvls (syntax levels)
  m fslvls=posuk("fslvls")
  ;
-  ; Initialize mismatch counter and storage
-  S mismatchCnt=0
-  K mismatches
-
-  ; Collect mismatches for this verse
  s lvl1="" f  s lvl1=$o(lvls(lvl1)) q:lvl1=""  d  ; trop
  . s wrd1="" f  s wrd1=$o(lvls(lvl1,wrd1)) q:wrd1=""  d
  .. s lvl2="" f  s lvl2=$o(fslvls(lvl2)) q:lvl2=""  d  ; syntax
  ... s wrd2="" f  s wrd2=$o(fslvls(lvl2,wrd2)) q:wrd2=""  d
  .... s wrdpart="" f  s wrdpart=$o(fslvls(lvl2,wrd2,wrdpart)) q:wrdpart=""  d
- ..... d checkMismatch(bookn,versen,lvl1,wrd1,lvl2,wrd2,wrdpart,.mismatches,.mismatchCnt)
-
- ; Generate output for the verse
- d displayVerse(bookn,versen,.mismatches,mismatchCnt)
+ ..... d findMismatch1(bookn,versen,lvl1,wrd1,lvl2,wrd2,wrdpart)
  q
  ;
 findMismatch1(book,verse,lvl1,wrd1,lvl2,wrd2,wrdpart) ; compare two branches
@@ -105,7 +96,7 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  .. E  d aTP(.revTrops,endWord,"L",,level,startWord,endWord,chap,verse,lvl1,wrd10,wrd1,mismatchCnt)
  ;
  ; Syntax - build list
-
+ 
  S level0=$o(posuk("fslvls",""),-1) ; deepest level reached
  F level=level0:-1:1 D ; sections begin and end, enclose in ( )
  . s endWord="" f  s endWord=$o(posuk("fslvls",level,endWord)) q:endWord=""  D
@@ -208,8 +199,9 @@ displayMismatch(bookn,versen,lvl1,wrd10,wrd1,lvl2,wrd20,wrd2) ; Display trop-syn
  .. d add("</td>")
  . d add("</tr>")
  . d add("</table>")
+ . d add("</div>") ; end table-container
  . S currentWord=segmentStart+1
- d add("</div>")
+ d add("</div>") ; end verse-container
  d add("<br/>")
  d add("<br/>")
  q
