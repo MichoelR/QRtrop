@@ -86,11 +86,11 @@ document.addEventListener('DOMContentLoaded', function() {
       highlightWordRange(null, chap, verse);
     }
   });
-  // Setup hover effects for trop and syntax elements with broader selectors to ensure targeting
+  // Setup hover effects for trop and syntax elements with even broader selectors to ensure targeting
   containers.forEach(container => {
-    // Target elements within segment tables or any relevant container
-    setupHover(container, '.segment-table td, .segment-table span, tr td, tr span', 'data-trop-group', 'highlight-trop');
-    setupHover(container, '.segment-table td, .segment-table span, tr td, tr span', 'data-syntax-group', 'highlight-syntax');
+    // Target elements within segment tables or any relevant container, including direct children
+    setupHover(container, '.segment-table td, .segment-table span, tr td, tr span, td, span', 'data-trop-group', 'highlight-trop');
+    setupHover(container, '.segment-table td, .segment-table span, tr td, tr span, td, span', 'data-syntax-group', 'highlight-syntax');
   });
 });
 // Function to setup hover effects for elements
@@ -105,10 +105,14 @@ function setupHover(container, selector, groupAttr, highlightClass) {
       }
       return;
     }
-    console.log(`Adding hover for ${groupAttr}=${groupId} on ${el.tagName} with class ${el.className}`);
+    console.log(`Adding hover for ${groupAttr}=${groupId} on ${el.tagName} with class ${el.className} and text ${el.textContent.substring(0, 20)}`);
     el.style.cursor = 'pointer'; // Add visual feedback for hoverable elements
-    el.addEventListener('mouseover', () => {
-      console.log(`Hover triggered for ${groupAttr}=${groupId}`);
+    // Remove any existing listeners to prevent duplicates
+    el.removeEventListener('mouseover', handleMouseOver);
+    el.removeEventListener('mouseout', handleMouseOut);
+    // Define handler functions to ensure logging
+    function handleMouseOver() {
+      console.log(`Hover triggered for ${groupAttr}=${groupId} on element with text ${el.textContent.substring(0, 20)}`);
       // Highlight all elements in the same group
       const groupElements = container.querySelectorAll(`[${groupAttr}="${groupId}"]`);
       console.log(`Highlighting ${groupElements.length} elements with ${highlightClass}`);
@@ -128,9 +132,9 @@ function setupHover(container, selector, groupAttr, highlightClass) {
       } else {
         console.log(`No data-word attribute on element with ${groupAttr}=${groupId}`);
       }
-    });
-    el.addEventListener('mouseout', () => {
-      console.log(`Mouse out for ${groupAttr}=${groupId}`);
+    }
+    function handleMouseOut() {
+      console.log(`Mouse out for ${groupAttr}=${groupId} on element with text ${el.textContent.substring(0, 20)}`);
       // Remove highlight from all elements in the same group
       const groupElements = container.querySelectorAll(`[${groupAttr}="${groupId}"]`);
       groupElements.forEach(groupEl => {
@@ -144,6 +148,12 @@ function setupHover(container, selector, groupAttr, highlightClass) {
           wordEl.classList.remove('highlight-word');
         }
       }
-    });
+    }
+    // Add event listeners with explicit handler names for debugging
+    el.addEventListener('mouseover', handleMouseOver, false);
+    el.addEventListener('mouseout', handleMouseOut, false);
+    // Also try mouseenter and mouseleave as a fallback
+    el.addEventListener('mouseenter', handleMouseOver, false);
+    el.addEventListener('mouseleave', handleMouseOut, false);
   });
 }
