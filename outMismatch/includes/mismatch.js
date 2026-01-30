@@ -197,27 +197,48 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Add listeners for mafsik (last trop in trope row)
 document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.segment-table tr:nth-child(2) .verse-trop').forEach(span => {  // second row is trope row
+  console.log('Initializing mafsik hover listeners...');
+  const mafsikSpans = document.querySelectorAll('.segment-table tr:nth-child(2) .verse-trop');
+  console.log('Found mafsik spans:', mafsikSpans.length);
+  mafsikSpans.forEach(span => {
     // Only add listeners if it's a mafsik: has a left paren directly to its left
-    if (!span.previousElementSibling || !span.previousElementSibling.classList.contains('branch-end')) return;
-    span.addEventListener('mouseover', function() {
+    if (!span.previousElementSibling || !span.previousElementSibling.classList.contains('branch-end')) {
+      console.log('Skipping non-mafsik span:', span.textContent);
+      return;
+    }
+    console.log('Adding hover listener to mafsik:', span.textContent);
+    span.style.cursor = 'pointer'; // Ensure cursor changes to pointer to indicate interactivity
+    span.addEventListener('mouseover', function(e) {
+      console.log('Hovering over mafsik:', this.textContent);
       const container = this.closest('.table-container');
-      if (!container) return;
+      if (!container) {
+        console.log('No container found for mafsik:', this.textContent);
+        return;
+      }
       // Get left paren
       const leftParen = this.previousElementSibling;
-      if (!leftParen || !leftParen.classList.contains('branch-end')) return;
+      if (!leftParen || !leftParen.classList.contains('branch-end')) {
+        console.log('No valid left paren found for mafsik:', this.textContent);
+        return;
+      }
       // Parse left paren's id for start, end
       const id = leftParen.id;
-      if (!id) return;
+      if (!id) {
+        console.log('No ID found on left paren for mafsik:', this.textContent);
+        return;
+      }
       const parts = id.split('-');
       const start = parseInt(parts[5]);
       const end = parseInt(parts[6]);
       const isTrope = id.startsWith('trop-');
+      console.log('Highlighting range:', start, 'to', end);
       // Highlight word range
       for (let w = start; w <= end; w++) {
         const td = container.querySelector(`td[data-word="${w}"]`);
         if (td) {
           td.classList.add(isTrope ? 'highlight-trop-bright' : 'highlight-syntax-bright');
+        } else {
+          console.log('No cell found for word:', w);
         }
       }
       // Highlight mafsik
@@ -235,6 +256,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const rightParen = container.querySelector(`[id="${pairId}"]`);
       if (rightParen) {
         rightParen.classList.add('highlight-pair');
+      } else {
+        console.log('No right paren found with ID:', pairId);
       }
       // Handle overlaps
       const overlappingWords = new Set();
@@ -249,7 +272,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
     });
-    span.addEventListener('mouseout', function() {
+    span.addEventListener('mouseout', function(e) {
+      console.log('Mouse out from mafsik:', this.textContent);
       const container = this.closest('.table-container');
       if (!container) return;
       // Get left paren
