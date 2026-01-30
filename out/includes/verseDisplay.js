@@ -72,26 +72,6 @@ document.addEventListener('DOMContentLoaded', function() {
         cells.forEach(cell => {
           cell.classList.remove('highlight-trop', 'highlight-syntax');
         });
-      // Remove highlight from associated word in the word row
-      if (selector.includes('trop')) {
-        const wordId = el.getAttribute('data-word-id');
-        if (wordId) {
-          const wordEl = container.querySelector(`td[data-word-id="${wordId}"]`);
-          if (wordEl) {
-            wordEl.classList.remove('highlight-word');
-          }
-        }
-      }
-      // For trop row, also highlight the associated word in the word row
-      if (selector.includes('trop')) {
-        const wordId = el.getAttribute('data-word-id');
-        if (wordId) {
-          const wordEl = container.querySelector(`td[data-word-id="${wordId}"]`);
-          if (wordEl) {
-            wordEl.classList.add('highlight-word');
-          }
-        }
-      }
       }
       highlightWordRange(null, chap, verse);
     });
@@ -106,4 +86,47 @@ document.addEventListener('DOMContentLoaded', function() {
       highlightWordRange(null, chap, verse);
     }
   });
+  // Setup hover effects for trop and syntax elements
+  containers.forEach(container => {
+    setupHover(container, '.trop-paren, .trop-symbol', 'data-trop-group', 'highlight-trop');
+    setupHover(container, '.syntax-paren, .syntax-label', 'data-syntax-group', 'highlight-syntax');
+  });
 });
+// Function to setup hover effects for elements
+function setupHover(container, selector, groupAttr, highlightClass) {
+  const elements = container.querySelectorAll(selector);
+  elements.forEach(el => {
+    const groupId = el.getAttribute(groupAttr);
+    if (!groupId) return;
+    el.addEventListener('mouseover', () => {
+      container.querySelectorAll(`[${groupAttr}="${groupId}"]`).forEach(groupEl => {
+        groupEl.classList.add(highlightClass);
+      });
+      // For trop row, also highlight the associated word in the word row
+      if (selector.includes('trop')) {
+        const wordId = el.getAttribute('data-word');
+        if (wordId) {
+          const wordEl = container.querySelector(`td[data-word="${wordId}"]`);
+          if (wordEl) {
+            wordEl.classList.add('highlight-word');
+          }
+        }
+      }
+    });
+    el.addEventListener('mouseout', () => {
+      container.querySelectorAll(`[${groupAttr}="${groupId}"]`).forEach(groupEl => {
+        groupEl.classList.remove(highlightClass);
+      });
+      // Remove highlight from associated word in the word row
+      if (selector.includes('trop')) {
+        const wordId = el.getAttribute('data-word');
+        if (wordId) {
+          const wordEl = container.querySelector(`td[data-word="${wordId}"]`);
+          if (wordEl) {
+            wordEl.classList.remove('highlight-word');
+          }
+        }
+      }
+    });
+  });
+}
