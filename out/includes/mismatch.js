@@ -500,7 +500,6 @@ function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, b
   // Remove any existing highlights to prevent duplicates
   const existingHighlights = table.querySelectorAll('.cell-highlight-' + (color === 'orange' ? 'trop' : 'syntax'));
   existingHighlights.forEach(h => h.remove());
-  console.log('removed');
 
   const rect = table.getBoundingClientRect();
   const rowStarts = Array.from(table.rows).slice(startRow - 1, endRow);
