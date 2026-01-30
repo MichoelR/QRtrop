@@ -300,25 +300,85 @@ document.addEventListener('DOMContentLoaded', function() {
         const container = entry.target;
         const verseContainer = container.closest('.verse-container');
         if (!verseContainer) return;
-        const mismatchDiv = verseContainer.querySelector('.mismatch-selector .mismatch-data');
-        if (!mismatchDiv) return;
-        const tropSpan = mismatchDiv.querySelector('.verse-trop');
-        const syntaxSpan = mismatchDiv.querySelector('.verse-syntax');
-        if (!tropSpan || !syntaxSpan) return;
-        const [tropStart, tropEnd] = tropSpan.dataset.words.split('-').map(Number);
-        const [syntaxStart, syntaxEnd] = syntaxSpan.dataset.words.split('-').map(Number);
+        const chap = verseContainer.getAttribute('data-chap');
+        const verse = verseContainer.getAttribute('data-verse');
+        const selectedRadio = verseContainer.querySelector(`input[name="mismatch-select-${chap}-${verse}"]:checked`);
+        if (!selectedRadio) return;
+        const tropRange = selectedRadio.getAttribute('data-trop').split('-').map(Number);
+        const syntaxRange = selectedRadio.getAttribute('data-syntax').split('-').map(Number);
 
         // Remove any existing highlights in the container to prevent duplicates
         container.querySelectorAll('.cell-highlight-trop, .cell-highlight-syntax').forEach(h => h.remove());
 
         // Highlight trope range across all relevant tables
-        highlightRangeAcrossTables(container, tropStart, tropEnd, 'orange');
+        highlightRangeAcrossTables(container, tropRange[0], tropRange[1], 'orange');
 
 
         // Highlight syntax range across all relevant tables
-        highlightRangeAcrossTables(container, syntaxStart, syntaxEnd, 'blue');
+        highlightRangeAcrossTables(container, syntaxRange[0], syntaxRange[1], 'blue');
 
         // Add colored borders to mismatch-data spans to match highlight colors
+        const mismatchDiv = verseContainer.querySelector(`.mismatch-data.mismatch-${selectedRadio.value}`);
+        if (mismatchDiv) {
+          const tropSpan = mismatchDiv.querySelector('.verse-trop');
+          const syntaxSpan = mismatchDiv.querySelector('.verse-syntax');
+          if (tropSpan) {
+            tropSpan.style.border = '1.5px solid orange';
+            tropSpan.style.padding = '6px 2px';
+            tropSpan.style.display = 'inline-block';
+          }
+          if (syntaxSpan) {
+            syntaxSpan.style.border = '1.5px solid blue';
+            syntaxSpan.style.padding = '2px';
+            syntaxSpan.style.display = 'inline-block';
+          }
+        }
+
+        observer.unobserve(container);
+      }
+    });
+  });
+
+  document.querySelectorAll('.table-container').forEach(container => {
+    observer.observe(container);
+  });
+
+  // Add event listeners to radio buttons to update highlights on change
+  const radioButtons = document.querySelectorAll('input[type="radio"][name^="mismatch-select-"]');
+  radioButtons.forEach(radio => {
+    radio.addEventListener('change', function() {
+      const name = radio.getAttribute('name');
+      const chapVerse = name.split('mismatch-select-')[1].split('-');
+      const chap = chapVerse[0];
+      const verse = chapVerse[1];
+      const verseContainer = document.querySelector(`.verse-container[data-chap="${chap}"][data-verse="${verse}"]`);
+      if (!verseContainer) return;
+      const container = verseContainer.querySelector('.table-container');
+      if (!container) return;
+      const selectedRadio = verseContainer.querySelector(`input[name="mismatch-select-${chap}-${verse}"]:checked`);
+      if (!selectedRadio) return;
+      const tropRange = selectedRadio.getAttribute('data-trop').split('-').map(Number);
+      const syntaxRange = selectedRadio.getAttribute('data-syntax').split('-').map(Number);
+
+      // Remove existing highlights
+      container.querySelectorAll('.cell-highlight-trop, .cell-highlight-syntax').forEach(h => h.remove());
+
+      // Apply new highlights based on selected radio
+      highlightRangeAcrossTables(container, tropRange[0], tropRange[1], 'orange');
+      highlightRangeAcrossTables(container, syntaxRange[0], syntaxRange[1], 'blue');
+
+      // Update borders on mismatch spans
+      const mismatchDivs = verseContainer.querySelectorAll('.mismatch-data');
+      mismatchDivs.forEach(div => {
+        const tropSpan = div.querySelector('.verse-trop');
+        const syntaxSpan = div.querySelector('.verse-syntax');
+        if (tropSpan) tropSpan.style.border = '';
+        if (syntaxSpan) syntaxSpan.style.border = '';
+      });
+      const selectedMismatchDiv = verseContainer.querySelector(`.mismatch-data.mismatch-${selectedRadio.value}`);
+      if (selectedMismatchDiv) {
+        const tropSpan = selectedMismatchDiv.querySelector('.verse-trop');
+        const syntaxSpan = selectedMismatchDiv.querySelector('.verse-syntax');
         if (tropSpan) {
           tropSpan.style.border = '1.5px solid orange';
           tropSpan.style.padding = '6px 2px';
@@ -329,14 +389,8 @@ document.addEventListener('DOMContentLoaded', function() {
           syntaxSpan.style.padding = '2px';
           syntaxSpan.style.display = 'inline-block';
         }
-
-        observer.unobserve(container);
       }
     });
-  });
-
-  document.querySelectorAll('.table-container').forEach(container => {
-    observer.observe(container);
   });
 });
 

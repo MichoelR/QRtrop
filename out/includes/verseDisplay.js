@@ -77,6 +77,14 @@ document.addEventListener('DOMContentLoaded', function() {
       const chap = chapVerse[0];
       const verse = chapVerse[1];
       console.log('Radio button changed for chap:', chap, 'verse:', verse);
+      // Clear all existing highlights for this verse before applying new ones
+      const container = document.querySelector(`.verse-container[data-chap="${chap}"][data-verse="${verse}"]`);
+      if (container) {
+        const cells = container.querySelectorAll('td[data-word]');
+        cells.forEach(cell => {
+          cell.classList.remove('highlight-trop', 'highlight-syntax');
+        });
+      }
       highlightWordRange(null, chap, verse);
     });
   });
