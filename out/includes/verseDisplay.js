@@ -86,10 +86,11 @@ document.addEventListener('DOMContentLoaded', function() {
       highlightWordRange(null, chap, verse);
     }
   });
-  // Setup hover effects for trop and syntax elements with broad selectors
+  // Setup hover effects for trop and syntax elements with refined selectors
   containers.forEach(container => {
-    setupHover(container, 'tr td, tr span, div', 'data-trop-group', 'highlight-trop');
-    setupHover(container, 'tr td, tr span, div', 'data-syntax-group', 'highlight-syntax');
+    // Target elements within rows that might contain trop or syntax data
+    setupHover(container, '.segment-table tr td, .segment-table tr span', 'data-trop-group', 'highlight-trop');
+    setupHover(container, '.segment-table tr td, .segment-table tr span', 'data-syntax-group', 'highlight-syntax');
   });
 });
 // Function to setup hover effects for elements
@@ -98,6 +99,7 @@ function setupHover(container, selector, groupAttr, highlightClass) {
   elements.forEach(el => {
     const groupId = el.getAttribute(groupAttr);
     if (!groupId) return;
+    el.style.cursor = 'pointer'; // Add visual feedback for hoverable elements
     el.addEventListener('mouseover', () => {
       // Highlight all elements in the same group
       const groupElements = container.querySelectorAll(`[${groupAttr}="${groupId}"]`);
