@@ -86,15 +86,8 @@ document.addEventListener('DOMContentLoaded', function() {
       highlightWordRange(null, chap, verse);
     }
   });
-  // Setup hover effects for trop and syntax elements with very broad selectors
+  // Setup hover effects for trop and syntax elements with broad selectors
   containers.forEach(container => {
-    console.log("Inspecting container for rows:", container);
-    const allRows = container.querySelectorAll('tr');
-    console.log(`Found ${allRows.length} rows in container`);
-    allRows.forEach((row, index) => {
-      console.log(`Row ${index} class:`, row.className, "text content:", row.textContent.substring(0, 50) + (row.textContent.length > 50 ? "..." : ""));
-    });
-    // Extremely broad selectors to debug and find elements
     setupHover(container, 'tr td, tr span, div', 'data-trop-group', 'highlight-trop');
     setupHover(container, 'tr td, tr span, div', 'data-syntax-group', 'highlight-syntax');
   });
@@ -102,21 +95,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // Function to setup hover effects for elements
 function setupHover(container, selector, groupAttr, highlightClass) {
   const elements = container.querySelectorAll(selector);
-  console.log(`Setting up hover for selector: ${selector}, found ${elements.length} elements for ${groupAttr}`);
-  elements.forEach((el, index) => {
+  elements.forEach(el => {
     const groupId = el.getAttribute(groupAttr);
-    if (!groupId) {
-      if (index < 5) { // Limit to first few elements to avoid log spam
-        console.log(`No ${groupAttr} found on element`, el.tagName, el.className, el.textContent.substring(0, 30));
-      }
-      return;
-    }
-    console.log(`Adding hover listeners for element with ${groupAttr}=${groupId}, tag=${el.tagName}, class=${el.className}`);
+    if (!groupId) return;
     el.addEventListener('mouseover', () => {
-      console.log(`Mouseover on element with ${groupAttr}=${groupId}`);
       // Highlight all elements in the same group
       const groupElements = container.querySelectorAll(`[${groupAttr}="${groupId}"]`);
-      console.log(`Found ${groupElements.length} elements to highlight with class ${highlightClass}`);
       groupElements.forEach(groupEl => {
         groupEl.classList.add(highlightClass);
       });
@@ -125,17 +109,11 @@ function setupHover(container, selector, groupAttr, highlightClass) {
       if (wordId) {
         const wordEl = container.querySelector(`td[data-word="${wordId}"]`);
         if (wordEl) {
-          console.log(`Highlighting word with data-word=${wordId}`);
           wordEl.classList.add('highlight-word');
-        } else {
-          console.log(`No word element found for data-word=${wordId}`);
         }
-      } else {
-        console.log(`No data-word attribute found on element with ${groupAttr}=${groupId}`);
       }
     });
     el.addEventListener('mouseout', () => {
-      console.log(`Mouseout on element with ${groupAttr}=${groupId}`);
       // Remove highlight from all elements in the same group
       const groupElements = container.querySelectorAll(`[${groupAttr}="${groupId}"]`);
       groupElements.forEach(groupEl => {
