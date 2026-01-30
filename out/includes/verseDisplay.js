@@ -99,32 +99,30 @@ function setupHover(container, selector, groupAttr, highlightClass) {
     const groupId = el.getAttribute(groupAttr);
     if (!groupId) return;
     el.addEventListener('mouseover', () => {
+      // Highlight all elements in the same group
       container.querySelectorAll(`[${groupAttr}="${groupId}"]`).forEach(groupEl => {
         groupEl.classList.add(highlightClass);
       });
-      // For trop row, also highlight the associated word in the word row
-      if (selector.includes('trop')) {
-        const wordId = el.getAttribute('data-word');
-        if (wordId) {
-          const wordEl = container.querySelector(`td[data-word="${wordId}"]`);
-          if (wordEl) {
-            wordEl.classList.add('highlight-word');
-          }
+      // For trop or syntax elements, also highlight the associated word in the word row
+      const wordId = el.getAttribute('data-word');
+      if (wordId) {
+        const wordEl = container.querySelector(`td[data-word="${wordId}"]`);
+        if (wordEl) {
+          wordEl.classList.add('highlight-word');
         }
       }
     });
     el.addEventListener('mouseout', () => {
+      // Remove highlight from all elements in the same group
       container.querySelectorAll(`[${groupAttr}="${groupId}"]`).forEach(groupEl => {
         groupEl.classList.remove(highlightClass);
       });
-      // Remove highlight from associated word in the word row
-      if (selector.includes('trop')) {
-        const wordId = el.getAttribute('data-word');
-        if (wordId) {
-          const wordEl = container.querySelector(`td[data-word="${wordId}"]`);
-          if (wordEl) {
-            wordEl.classList.remove('highlight-word');
-          }
+      // Remove highlight from the associated word in the word row
+      const wordId = el.getAttribute('data-word');
+      if (wordId) {
+        const wordEl = container.querySelector(`td[data-word="${wordId}"]`);
+        if (wordEl) {
+          wordEl.classList.remove('highlight-word');
         }
       }
     });
