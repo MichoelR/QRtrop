@@ -86,11 +86,11 @@ document.addEventListener('DOMContentLoaded', function() {
       highlightWordRange(null, chap, verse);
     }
   });
-  // Setup hover effects for trop and syntax elements with the broadest possible selectors
+  // Setup hover effects for trop and syntax elements with specific selectors
   containers.forEach(container => {
-    // Target every possible element that might be related to trop or syntax
-    setupHover(container, '*', 'data-trop-group', 'highlight-trop');
-    setupHover(container, '*', 'data-syntax-group', 'highlight-syntax');
+    // Target specific elements likely to be related to trop or syntax
+    setupHover(container, 'td, span', 'data-trop-group', 'highlight-trop');
+    setupHover(container, 'td, span', 'data-syntax-group', 'highlight-syntax');
   });
 });
 // Function to setup hover effects for elements
@@ -98,50 +98,54 @@ function setupHover(container, selector, groupAttr, highlightClass) {
   const elements = container.querySelectorAll(selector);
   console.log(`Setting up hover for ${groupAttr}, selector: ${selector}, found ${elements.length} elements`);
   elements.forEach((el, index) => {
-    // Log all elements for debugging, even if they don't have the group attribute
-    if (index < 10) { // Limit to first 10 to avoid spam
+    // Log only a few elements for debugging
+    if (index < 5) {
       console.log(`Element ${index}: ${el.tagName}, class: ${el.className}, text: ${el.textContent.substring(0, 20)}`);
     }
-    const groupId = el.getAttribute(groupAttr);
-    if (!groupId) {
-      return;
-    }
-    console.log(`Adding hover for ${groupAttr}=${groupId} on ${el.tagName} with class ${el.className}`);
-    el.style.cursor = 'pointer'; // Add visual feedback for hoverable elements
+    // Add hover event to ALL elements for testing
     el.addEventListener('mouseover', function(event) {
-      console.log(`Hover IN on ${groupAttr}=${groupId}, element: ${el.tagName}, class: ${el.className}, text: ${el.textContent.substring(0, 20)}`);
-      // Highlight all elements in the same group
-      const groupElements = container.querySelectorAll(`[${groupAttr}="${groupId}"]`);
-      groupElements.forEach(groupEl => {
-        groupEl.classList.add(highlightClass);
-      });
-      // Highlight associated word
-      const wordId = el.getAttribute('data-word');
-      if (wordId) {
-        const wordEl = container.querySelector(`td[data-word="${wordId}"]`);
-        if (wordEl) {
-          wordEl.classList.add('highlight-word');
-          console.log(`Highlighted word ID ${wordId}`);
-        } else {
-          console.log(`Word ID ${wordId} not found`);
+      console.log(`Hover IN detected on ${el.tagName}, class: ${el.className}, text: ${el.textContent.substring(0, 20)}`);
+      const groupId = el.getAttribute(groupAttr);
+      if (groupId) {
+        console.log(`Group ID found: ${groupAttr}=${groupId}`);
+        // Highlight all elements in the same group
+        const groupElements = container.querySelectorAll(`[${groupAttr}="${groupId}"]`);
+        groupElements.forEach(groupEl => {
+          groupEl.classList.add(highlightClass);
+        });
+        // Highlight associated word
+        const wordId = el.getAttribute('data-word');
+        if (wordId) {
+          const wordEl = container.querySelector(`td[data-word="${wordId}"]`);
+          if (wordEl) {
+            wordEl.classList.add('highlight-word');
+            console.log(`Highlighted word ID ${wordId}`);
+          } else {
+            console.log(`Word ID ${wordId} not found`);
+          }
         }
+      } else {
+        console.log(`No ${groupAttr} on this element`);
       }
-    }, true);
+    });
     el.addEventListener('mouseout', function(event) {
-      console.log(`Hover OUT on ${groupAttr}=${groupId}, element: ${el.tagName}, class: ${el.className}, text: ${el.textContent.substring(0, 20)}`);
-      // Remove highlight from all elements in the same group
-      const groupElements = container.querySelectorAll(`[${groupAttr}="${groupId}"]`);
-      groupElements.forEach(groupEl => {
-        groupEl.classList.remove(highlightClass);
-      });
-      // Remove highlight from associated word
-      const wordId = el.getAttribute('data-word');
-      if (wordId) {
-        const wordEl = container.querySelector(`td[data-word="${wordId}"]`);
-        if (wordEl) {
-          wordEl.classList.remove('highlight-word');
+      console.log(`Hover OUT detected on ${el.tagName}, class: ${el.className}, text: ${el.textContent.substring(0, 20)}`);
+      const groupId = el.getAttribute(groupAttr);
+      if (groupId) {
+        // Remove highlight from all elements in the same group
+        const groupElements = container.querySelectorAll(`[${groupAttr}="${groupId}"]`);
+        groupElements.forEach(groupEl => {
+          groupEl.classList.remove(highlightClass);
+        });
+        // Remove highlight from associated word
+        const wordId = el.getAttribute('data-word');
+        if (wordId) {
+          const wordEl = container.querySelector(`td[data-word="${wordId}"]`);
+          if (wordEl) {
+            wordEl.classList.remove('highlight-word');
+          }
         }
       }
-    }, true);
+    });
   });
 }
