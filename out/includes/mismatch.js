@@ -128,14 +128,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.querySelectorAll('.verse-trop, .verse-syntax').forEach(span => {
     span.addEventListener('mouseover', function() {
-      const mismatchDiv = this.closest('.mismatch_data');
+      const mismatchDiv = this.closest('.mismatch-data');
       if (!mismatchDiv) return;
       const tropSpan = mismatchDiv.querySelector('.verse-trop');
       const syntaxSpan = mismatchDiv.querySelector('.verse-syntax');
       if (!tropSpan || !syntaxSpan) return;
       const [tropStart, tropEnd] = tropSpan.dataset.words.split('-').map(Number);
       const [syntaxStart, syntaxEnd] = syntaxSpan.dataset.words.split('-').map(Number);
-      // Find the associated container - it should be the next sibling after the mismatch_data div
+      // Find the associated container - it should be the next sibling after the mismatch-data div
       const container = mismatchDiv.nextElementSibling && mismatchDiv.nextElementSibling.classList.contains('table-container') ? mismatchDiv.nextElementSibling : null;
       if (container) {
         if (!this.closest('td')) {
@@ -173,14 +173,14 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     span.addEventListener('mouseout', function() {
-      const mismatchDiv = this.closest('.mismatch_data');
+      const mismatchDiv = this.closest('.mismatch-data');
       if (!mismatchDiv) return;
       const tropSpan = mismatchDiv.querySelector('.verse-trop');
       const syntaxSpan = mismatchDiv.querySelector('.verse-syntax');
       if (!tropSpan || !syntaxSpan) return;
       const [tropStart, tropEnd] = tropSpan.dataset.words.split('-').map(Number);
       const [syntaxStart, syntaxEnd] = syntaxSpan.dataset.words.split('-').map(Number);
-      // Find the associated container - it should be the next sibling after the mismatch_data div
+      // Find the associated container - it should be the next sibling after the mismatch-data div
       const container = mismatchDiv.nextElementSibling && mismatchDiv.nextElementSibling.classList.contains('table-container') ? mismatchDiv.nextElementSibling : null;
       if (container) {
         // Remove all highlights
@@ -296,8 +296,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const container = entry.target;
         const mismatchDiv = container.previousElementSibling;
         if (!mismatchDiv) return;
-        if (!mismatchDiv.classList.contains('mismatch_data')) return;
-
+        if (!mismatchDiv.classList.contains('mismatch-data')) return;
         const tropSpan = mismatchDiv.querySelector('.verse-trop');
         const syntaxSpan = mismatchDiv.querySelector('.verse-syntax');
         if (!tropSpan || !syntaxSpan) return;
@@ -313,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Highlight syntax range across all relevant tables
         highlightRangeAcrossTables(container, syntaxStart, syntaxEnd, 'blue');
 
-        // Add colored borders to mismatch_data spans to match highlight colors
+        // Add colored borders to mismatch-data spans to match highlight colors
         if (tropSpan) {
           tropSpan.style.border = '1.5px solid orange';
           tropSpan.style.padding = '6px 2px';
@@ -338,7 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function highlightRangeAcrossTables(container, startWord, endWord, color) {
   const tables = Array.from(container.querySelectorAll('.segment-table'));
   if (!tables.length) return;
-
+console.log('across tables');
   // Find the tables that contain the start and end words
   let startTable = null, endTable = null;
   let startCell = null, endCell = null;
@@ -441,6 +440,7 @@ function highlightCellRange(table, startRow = 1, startCol, endRow = 1, endCol, b
   // Remove any existing highlights to prevent duplicates
   const existingHighlights = table.querySelectorAll('.cell-highlight-' + (color === 'orange' ? 'trop' : 'syntax'));
   existingHighlights.forEach(h => h.remove());
+  console.log('removed');
 
   const rect = table.getBoundingClientRect();
   const rowStarts = Array.from(table.rows).slice(startRow - 1, endRow);
