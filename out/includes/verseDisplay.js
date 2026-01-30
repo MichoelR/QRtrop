@@ -105,14 +105,41 @@ function setupHover(container, selector, groupAttr, highlightClass) {
     // Add hover event to ALL elements for testing
     el.addEventListener('mouseover', function(event) {
       console.log(`Hover IN detected on ${el.tagName}, class: ${el.className}, text: ${el.textContent.substring(0, 20)}`);
-      const groupId = el.getAttribute(groupAttr);
-      if (groupId) {
+      let groupId = el.getAttribute(groupAttr);
+      let isTropOrSyntax = false;
+
+      // Fallback to class name checks if group ID is not present
+      if (!groupId) {
+        const classList = el.className || '';
+        if (groupAttr === 'data-trop-group' && (classList.includes('trop') || classList.includes('mafsik'))) {
+          groupId = classList.split(' ').find(cls => cls.startsWith('trop-level-') || cls.startsWith('branch-')) || 'trop-fallback';
+          isTropOrSyntax = true;
+          console.log(`Trop element detected via class, using groupId: ${groupId}`);
+        } else if (groupAttr === 'data-syntax-group' && classList.includes('syntax')) {
+          groupId = classList.split(' ').find(cls => cls.startsWith('syntax-level-') || cls.startsWith('branch-')) || 'syntax-fallback';
+          isTropOrSyntax = true;
+          console.log(`Syntax element detected via class, using groupId: ${groupId}`);
+        } else {
+          console.log(`No ${groupAttr} or relevant class on this element`);
+        }
+      } else {
         console.log(`Group ID found: ${groupAttr}=${groupId}`);
-        // Highlight all elements in the same group
-        const groupElements = container.querySelectorAll(`[${groupAttr}="${groupId}"]`);
+        isTropOrSyntax = true;
+      }
+
+      if (groupId && isTropOrSyntax) {
+        // Highlight all elements that might be related (same group or similar class)
+        const groupElements = container.querySelectorAll(`[${groupAttr}="${groupId}"], .${groupId}`);
         groupElements.forEach(groupEl => {
           groupEl.classList.add(highlightClass);
         });
+        // Also try to find related elements by class name if groupId is derived from class
+        if (groupId.includes('trop') || groupId.includes('syntax')) {
+          const classElements = container.querySelectorAll(`[class*="${groupId}"], [class*="trop"], [class*="syntax"]`);
+          classElements.forEach(classEl => {
+            classEl.classList.add(highlightClass);
+          });
+        }
         // Highlight associated word
         const wordId = el.getAttribute('data-word');
         if (wordId) {
@@ -124,16 +151,30 @@ function setupHover(container, selector, groupAttr, highlightClass) {
             console.log(`Word ID ${wordId} not found`);
           }
         }
-      } else {
-        console.log(`No ${groupAttr} on this element`);
       }
     });
     el.addEventListener('mouseout', function(event) {
       console.log(`Hover OUT detected on ${el.tagName}, class: ${el.className}, text: ${el.textContent.substring(0, 20)}`);
-      const groupId = el.getAttribute(groupAttr);
-      if (groupId) {
-        // Remove highlight from all elements in the same group
-        const groupElements = container.querySelectorAll(`[${groupAttr}="${groupId}"]`);
+      let groupId = el.getAttribute(groupAttr);
+      let isTropOrSyntax = false;
+
+      // Fallback to class name checks if group ID is not present
+      if (!groupId) {
+        const classList = el.className || '';
+        if (groupAttr === 'data-trop-group' && (classList.includes('trop') || classList.includes('mafsik'))) {
+          groupId = classList.split(' ').find(cls => cls.startsWith('trop-level-') || cls.startsWith('branch-')) || 'trop-fallback';
+          isTropOrSyntax = true;
+        } else if (groupAttr === 'data-syntax-group' && classList.includes('syntax')) {
+          groupId = classList.split(' ').find(cls => cls.startsWith('syntax-level-') || cls.startsWith('branch-')) || 'syntax-fallback';
+          isTropOrSyntax = true;
+        }
+      } else {
+        isTropOrSyntax = true;
+      }
+
+      if (groupId && isTropOrSyntax) {
+        // Remove highlight from all elements in the same group or class
+        const groupElements = container.querySelectorAll(`[${groupAttr}="${groupId}"], .${groupId}, [class*="${groupId}"], [class*="trop"], [class*="syntax"]`);
         groupElements.forEach(groupEl => {
           groupEl.classList.remove(highlightClass);
         });
