@@ -5,14 +5,12 @@
   box-shadow: 0 0 5px orange;
 }
 
-.highlight-syntax {
-   position: relative !important;
-   z-index: 2 !important;
+.highlight-syntax {  position: relative !important;
+  z-index: 2 !important;
 
   border: 3px solid blue;
   background-color: rgba(0, 0, 255, 0.3);
   box-shadow: 0 0 5px blue;
-  z-index: 1;
-   position: relative !important;
-   z-index: 3 !important;
+  position: relative !important;
+  z-index: 3 !important;
  }
