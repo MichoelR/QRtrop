@@ -204,7 +204,9 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.segment-table tr:nth-child(2) .verse-trop').forEach(span => {  // second row is trope row
     // Only add listeners if it's a mafsik: has a left paren directly to its left
     if (!span.previousElementSibling || !span.previousElementSibling.classList.contains('branch-end')) return;
+    console.log('Adding hover listener to mafsik:', span.textContent);
     span.addEventListener('mouseover', function() {
+      console.log('Hovering over mafsik:', this.textContent);
       const container = this.closest('.table-container');
       if (!container) return;
       // Get left paren
@@ -217,6 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const start = parseInt(parts[5]);
       const end = parseInt(parts[6]);
       const isTrope = id.startsWith('trop-');
+      console.log('Highlighting range:', start, 'to', end);
       // Highlight word range
       for (let w = start; w <= end; w++) {
         const td = container.querySelector(`td[data-word="${w}"]`);
@@ -254,6 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
     span.addEventListener('mouseout', function() {
+      console.log('Mouse out from mafsik:', this.textContent);
       const container = this.closest('.table-container');
       if (!container) return;
       // Get left paren
