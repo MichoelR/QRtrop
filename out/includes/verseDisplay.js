@@ -88,8 +88,9 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   // Setup hover effects for trop and syntax elements
   containers.forEach(container => {
-    setupHover(container, '.trop-paren, .trop-symbol', 'data-trop-group', 'highlight-trop');
-    setupHover(container, '.syntax-paren, .syntax-label', 'data-syntax-group', 'highlight-syntax');
+    // Broaden selector to catch any elements in the trop row that might have data-trop-group
+    setupHover(container, 'tr.trop-row td, tr.trop-row span', 'data-trop-group', 'highlight-trop');
+    setupHover(container, 'tr.syntax-row td, tr.syntax-row span, .syntax-paren, .syntax-label', 'data-syntax-group', 'highlight-syntax');
   });
 });
 // Function to setup hover effects for elements
