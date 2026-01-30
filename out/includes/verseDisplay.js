@@ -95,12 +95,20 @@ document.addEventListener('DOMContentLoaded', function() {
 // Function to setup hover effects for elements
 function setupHover(container, selector, groupAttr, highlightClass) {
   const elements = container.querySelectorAll(selector);
+  console.log(`Setting up hover for selector: ${selector}, found ${elements.length} elements`);
   elements.forEach(el => {
     const groupId = el.getAttribute(groupAttr);
-    if (!groupId) return;
+    if (!groupId) {
+      console.log(`No ${groupAttr} found on element`, el);
+      return;
+    }
+    console.log(`Adding hover listeners for element with ${groupAttr}=${groupId}`);
     el.addEventListener('mouseover', () => {
+      console.log(`Mouseover on element with ${groupAttr}=${groupId}`);
       // Highlight all elements in the same group
-      container.querySelectorAll(`[${groupAttr}="${groupId}"]`).forEach(groupEl => {
+      const groupElements = container.querySelectorAll(`[${groupAttr}="${groupId}"]`);
+      console.log(`Found ${groupElements.length} elements to highlight with class ${highlightClass}`);
+      groupElements.forEach(groupEl => {
         groupEl.classList.add(highlightClass);
       });
       // For trop or syntax elements, also highlight the associated word in the word row
@@ -108,13 +116,20 @@ function setupHover(container, selector, groupAttr, highlightClass) {
       if (wordId) {
         const wordEl = container.querySelector(`td[data-word="${wordId}"]`);
         if (wordEl) {
+          console.log(`Highlighting word with data-word=${wordId}`);
           wordEl.classList.add('highlight-word');
+        } else {
+          console.log(`No word element found for data-word=${wordId}`);
         }
+      } else {
+        console.log(`No data-word attribute found on element with ${groupAttr}=${groupId}`);
       }
     });
     el.addEventListener('mouseout', () => {
+      console.log(`Mouseout on element with ${groupAttr}=${groupId}`);
       // Remove highlight from all elements in the same group
-      container.querySelectorAll(`[${groupAttr}="${groupId}"]`).forEach(groupEl => {
+      const groupElements = container.querySelectorAll(`[${groupAttr}="${groupId}"]`);
+      groupElements.forEach(groupEl => {
         groupEl.classList.remove(highlightClass);
       });
       // Remove highlight from the associated word in the word row
