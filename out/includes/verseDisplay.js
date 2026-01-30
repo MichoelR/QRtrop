@@ -86,24 +86,32 @@ document.addEventListener('DOMContentLoaded', function() {
       highlightWordRange(null, chap, verse);
     }
   });
-  // Setup hover effects for trop and syntax elements
+  // Setup hover effects for trop and syntax elements with very broad selectors
   containers.forEach(container => {
-    // Broaden selector to catch any elements in the trop row that might have data-trop-group
-    setupHover(container, 'tr.trop-row td, tr.trop-row span', 'data-trop-group', 'highlight-trop');
-    setupHover(container, 'tr.syntax-row td, tr.syntax-row span, .syntax-paren, .syntax-label', 'data-syntax-group', 'highlight-syntax');
+    console.log("Inspecting container for rows:", container);
+    const allRows = container.querySelectorAll('tr');
+    console.log(`Found ${allRows.length} rows in container`);
+    allRows.forEach((row, index) => {
+      console.log(`Row ${index} class:`, row.className, "text content:", row.textContent.substring(0, 50) + (row.textContent.length > 50 ? "..." : ""));
+    });
+    // Extremely broad selectors to debug and find elements
+    setupHover(container, 'tr td, tr span, div', 'data-trop-group', 'highlight-trop');
+    setupHover(container, 'tr td, tr span, div', 'data-syntax-group', 'highlight-syntax');
   });
 });
 // Function to setup hover effects for elements
 function setupHover(container, selector, groupAttr, highlightClass) {
   const elements = container.querySelectorAll(selector);
-  console.log(`Setting up hover for selector: ${selector}, found ${elements.length} elements`);
-  elements.forEach(el => {
+  console.log(`Setting up hover for selector: ${selector}, found ${elements.length} elements for ${groupAttr}`);
+  elements.forEach((el, index) => {
     const groupId = el.getAttribute(groupAttr);
     if (!groupId) {
-      console.log(`No ${groupAttr} found on element`, el);
+      if (index < 5) { // Limit to first few elements to avoid log spam
+        console.log(`No ${groupAttr} found on element`, el.tagName, el.className, el.textContent.substring(0, 30));
+      }
       return;
     }
-    console.log(`Adding hover listeners for element with ${groupAttr}=${groupId}`);
+    console.log(`Adding hover listeners for element with ${groupAttr}=${groupId}, tag=${el.tagName}, class=${el.className}`);
     el.addEventListener('mouseover', () => {
       console.log(`Mouseover on element with ${groupAttr}=${groupId}`);
       // Highlight all elements in the same group
