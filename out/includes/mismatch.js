@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       }
     });
-    span.addEventListener('mouseout', function() {
+    span.addEventListener('mouseout', function(e) {
       const id = this.id;
       if (!id) return;
       const parts = id.split('-');
@@ -77,6 +77,18 @@ document.addEventListener('DOMContentLoaded', function() {
       const isTrope = id.startsWith('trop-');
       const container = span.closest('.table-container');
       if (container) {
+        // Check if moving to a related element (other paren, mafsik, or a cell in the range)
+        const relatedTarget = e.relatedTarget;
+        if (relatedTarget && (
+            (relatedTarget.classList && (
+                (relatedTarget.classList.contains('branch-end') || relatedTarget.classList.contains('branch-start')) && relatedTarget.id.includes(parts[0] + '-' + parts[1] + '-' + parts[2])
+            )) ||
+            (relatedTarget.classList && relatedTarget.classList.contains('verse-trop') && relatedTarget.closest('td') === this.closest('td')) ||
+            (relatedTarget.tagName === 'TD' && relatedTarget.dataset.word && parseInt(relatedTarget.dataset.word) >= start && parseInt(relatedTarget.dataset.word) <= end)
+        )) {
+          console.log('Moving to related element, not clearing highlight from paren');
+          return;
+        }
         for (let w = start; w <= end; w++) {
           const td = container.querySelector(`td[data-word="${w}"]`);
           if (td) {
