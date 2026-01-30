@@ -302,10 +302,28 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!verseContainer) return;
         const chap = verseContainer.getAttribute('data-chap');
         const verse = verseContainer.getAttribute('data-verse');
+        let tropRange, syntaxRange;
         const selectedRadio = verseContainer.querySelector(`input[name="mismatch-select-${chap}-${verse}"]:checked`);
-        if (!selectedRadio) return;
-        const tropRange = selectedRadio.getAttribute('data-trop').split('-').map(Number);
-        const syntaxRange = selectedRadio.getAttribute('data-syntax').split('-').map(Number);
+        if (selectedRadio) {
+          tropRange = selectedRadio.getAttribute('data-trop').split('-').map(Number);
+          syntaxRange = selectedRadio.getAttribute('data-syntax').split('-').map(Number);
+        } else {
+          // Handle single mismatch case where there is no radio button
+          const mismatchDiv = verseContainer.querySelector('.mismatch-selector .mismatch-data');
+          if (!mismatchDiv) return;
+          const tropSpan = mismatchDiv.querySelector('.verse-trop');
+          const syntaxSpan = mismatchDiv.querySelector('.verse-syntax');
+          if (!tropSpan || !syntaxSpan) return;
+          tropRange = tropSpan.getAttribute('data-words').split('-').map(Number);
+          syntaxRange = syntaxSpan.getAttribute('data-words').split('-').map(Number);
+          // Add colored borders to mismatch-data spans
+          tropSpan.style.border = '1.5px solid orange';
+          tropSpan.style.padding = '6px 2px';
+          tropSpan.style.display = 'inline-block';
+          syntaxSpan.style.border = '1.5px solid blue';
+          syntaxSpan.style.padding = '2px';
+          syntaxSpan.style.display = 'inline-block';
+        }
 
         // Remove any existing highlights in the container to prevent duplicates
         container.querySelectorAll('.cell-highlight-trop, .cell-highlight-syntax').forEach(h => h.remove());
@@ -316,23 +334,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Highlight syntax range across all relevant tables
         highlightRangeAcrossTables(container, syntaxRange[0], syntaxRange[1], 'blue');
-
-        // Add colored borders to mismatch-data spans to match highlight colors
-        const mismatchDiv = verseContainer.querySelector(`.mismatch-data.mismatch-${selectedRadio.value}`);
-        if (mismatchDiv) {
-          const tropSpan = mismatchDiv.querySelector('.verse-trop');
-          const syntaxSpan = mismatchDiv.querySelector('.verse-syntax');
-          if (tropSpan) {
-            tropSpan.style.border = '1.5px solid orange';
-            tropSpan.style.padding = '6px 2px';
-            tropSpan.style.display = 'inline-block';
-          }
-          if (syntaxSpan) {
-            syntaxSpan.style.border = '1.5px solid blue';
-            syntaxSpan.style.padding = '2px';
-            syntaxSpan.style.display = 'inline-block';
-          }
-        }
 
         observer.unobserve(container);
       }
