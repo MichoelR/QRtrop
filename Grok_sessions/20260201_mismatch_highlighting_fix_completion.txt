@@ -1,0 +1,27 @@
+Quick summary of what we did in this session
+We worked through several steps to make your trop/syntax mismatch highlighting in the web preview (from mkrqr8.int) clean and reliable:
+
+Identified the core problem: Hover highlights (for triplets: left paren + mafsik/syntax text + right paren) were flickering or not clearing properly due to race conditions between mouse events on nested or adjacent spans.
+Refactored the Cache code (^mkrqr8):
+In aTP (trop): Moved the mafsik text (e.g. "SOF PASUK") inside the .branch-end span so the left paren and text are one single element — no nested span around just (.
+In displayTropRow: Removed the extra outer <span class='verse-trop'> wrapper, so the branch-end span itself is now the group element.
+Added conditional logic to displayTropRow to use plain revTrops(wordIdx) only for non-mafsik tropes (those without parens), preventing doubling or missing text.
+
+Resulting HTML structure:
+Trop left cell: <span id='trop-...-L' class='branch-end trop-level-1'>(SOF PASUK</span>
+Syntax left cell: <span id='syntax-...-L' class='branch-end syntax-level-2'>(VC</span>
+Both now identical: one span containing paren + text, no nesting → no event races inside the left group.
+
+Updated JavaScript (mismatch.js):
+Listeners now only on .branch-end and .branch-start (which contain the text).
+On enter: clear all previous highlights in the table, then highlight only the current triplet (words + parens/text).
+On leave: clear only if truly leaving the group (with relatedTarget check to allow moving to right paren).
+Outcome: Only one triplet highlights at a time (no confusing overlap), highlights stay solid while hovering any part of the triplet, and clear cleanly when leaving.
+
+Final behavior:
+Hover on any part of a triplet (paren, text, or right paren) → only that triplet highlights.
+Move to another triplet → old one clears, new one highlights.
+Leave the row completely → everything clears.
+
+
+That was the journey: HTML consistency → no nested spans → simple JS listeners → single-triplet highlighting with no flicker.

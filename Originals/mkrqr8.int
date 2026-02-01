@@ -1,0 +1,164 @@
+mkrqr8	; mkr 08/01/2025; kriah (קריה), trop (טעמים), and syntax - comprehensive verse output with selectable mismatches
+	;
+generateAllVerses ; Generate output for all verses in ^torah2 with optional mismatch highlighting
+ n bookName,chars,glb0,glb1,NONLETTERS,sefer,sefarim
+ ;
+ s U="^",P="|",sp=" "
+ s glb0="^torah2",glb1="^TMP("_$j_",""out"")"
+ k @glb1
+ ;
+ m chars=^mkr4("chars")
+ m sefarim=^mkr4("sefer") ; details about various books of Tanach
+ s NONLETTERS="" f i=1425:1:1469,1471:1:1479 s NONLETTERS=NONLETTERS_$c(i) ; all characters that aren't aleph - tav
+ ;
+ ;f bookn=1:1:35 d
+ f bookn=1 d  ; DEBUGGING
+ . m sefer=sefarim(bookn)
+ . s sefer1=$$zconvert^mkrutl(sefer,"O","UTF8")
+ . S bookName=sefarim(bookn,"eng") ; Map bookn to name
+ . d includeFile("header.html")
+ . f versen=1:1 q:'$d(^torah2(bookn,versen))  d generateVerseOutput(bookn,versen)
+ . d includeFile("footer.html")
+ . d writeout^mkrqr1(bookn,glb1,"allVerses"_bookName,"QRCode\out","html") ; output to file
+ . d writeout^mkrqr1(bookn,glb1,"preview_allVerses"_bookName,"QRCode\out","html",500) ; output preview to file, 500 rows
+ . d add(txt)
+ . k @glb1
+ q
+ ;
+generateVerseOutput(bookn,versen) ; Generate output for a specific verse, including all words and mismatches if any
+ n lvls,fslvls,lvl1,wrd1,lvl2,wrd2,wrdpart,posuk
+ n mismatches,mismatchCnt,mismatchIdx
+ ;
+ M posuk=^torah2(bookn,versen) ; all verse info
+ ; Get lvls (trop levels)
+ m lvls=posuk("lvls")
+ ;
+ ; Get fslvls (syntax levels)
+ m fslvls=posuk("fslvls")
+ ;
+ ; Initialize mismatch counter and storage
+ S mismatchCnt=0
+ K mismatches
+ ;
+ ; Collect mismatches for this verse
+ s lvl1="" f  s lvl1=$o(lvls(lvl1)) q:lvl1=""  d  ; trop
+ . s wrd1="" f  s wrd1=$o(lvls(lvl1,wrd1)) q:wrd1=""  d
+ .. s lvl2="" f  s lvl2=$o(fslvls(lvl2)) q:lvl2=""  d  ; syntax
+ ... s wrd2="" f  s wrd2=$o(fslvls(lvl2,wrd2)) q:wrd2=""  d
+ .... s wrdpart="" f  s wrdpart=$o(fslvls(lvl2,wrd2,wrdpart)) q:wrdpart=""  d
+ ..... d checkMismatch(bookn,versen,lvl1,wrd1,lvl2,wrd2,wrdpart,.mismatches,.mismatchCnt)
+ ;
+ ; Generate output for the verse
+ d displayVerse(bookn,versen,.mismatches,mismatchCnt)
+ q
+ ;
+checkMismatch(book,verse,lvl1,wrd1,lvl2,wrd2,wrdpart,mismatches,mismatchCnt) ; compare two branches and store mismatch if any
+ ; ... (your existing logic unchanged)
+ q
+ ;
+displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display one verse with mismatches
+ n posuk,revTrops,revSyn,wrdcnt,wordIdx,txt
+ ;
+ M posuk=^torah2(bookn,versen)
+ s wrdcnt=posuk(0)
+ ;
+ ; Build trop and syntax structures (your existing calls to aTP/aSP)
+ ; ... (assume your existing code builds revTrops and revSyn here)
+ ;
+ d add("<div class='verse-container' data-chap='"_posuk("chap")_"' data-verse='"_versen_"'>")
+ d add("B'reishis "_posuk("chap")_":"_versen_" "_posuk)
+ ;
+ d add("<div class='table-container'>")
+ ; ... (your table generation code)
+ ;
+ ; Trop row
+ ; Row 2: trops - build right-to-left to match word order
+ d displayTropRow(.revTrops,wrdcnt,posuk("chap"),versen,mismatchLevel,mismatchStart,mismatchEnd,mismatchCnt)
+ ;
+ ; Row 3: Syntax
+ ; Syntax row
+ d displaySyntaxRow(.revSyn,wrdcnt,posuk("chap"),versen,mismatchLevel,mismatchStart,mismatchEnd,mismatchCnt)
+ ;
+ d add("</div></div>") ; end table-container ; end verse-container
+ q
+ ;
+displayTropRow(revTrops,wrdcnt,chap,verse,mismatchLevel,mismatchStart,mismatchEnd,mismatchCnt)
+ ; Display trope row — paren + mafsik text already in one span (from refactored aTP)
+ n wordIdx,txt
+ d add("<tr class='trop-row'>")
+ f wordIdx=wrdcnt:-1:1 d  ; RTL order
+ . s txt=$g(revTrops(wordIdx,"L"))_$g(revTrops(wordIdx,"R"))  ; no extra outer span
+ . d add("<td>"_txt_"</td>")
+ d add("</tr>")
+ q
+ ;
+aTP(revTrops,wordIdx,direction,dots,level,startWord,endWord,chap,verse,mismatchLevel,mismatchStart,mismatchEnd,mismatchCnt)
+ ; Add left/right paren for trop — paren + mafsik text in ONE span (no inner span)
+ n dottxt,id,class,txt
+
+ s dottxt="" i $g(dots) s dottxt="..."
+
+ s id="trop-"_chap_"-"_verse_"-"_mismatchCnt_"-"_level_"-"_startWord_"-"_endWord_"-"_direction
+
+ s class=$s(direction="L":"branch-end",direction="R":"branch-start",1:"")_" trop-level-"_level
+
+ i (level=mismatchLevel) & (startWord=mismatchStart) & (endWord=mismatchEnd) s class=class_" mismatch-pair"
+
+ ; Left: paren + mafsik text inside the branch-end span
+ i direction="L" d
+ . s txt="("_dottxt_$g(revTrops(wordIdx))  ; mafsik text INSIDE
+ . s revTrops(wordIdx,"L")="<span id='"_id_"' class='"_class_"'>"_txt_"</span>"
+
+ ; Right: closing paren in its own span
+ i direction="R" d
+ . s txt=dottxt_")"
+ . s revTrops(wordIdx,"R")=$g(revTrops(wordIdx,"R"))_"<span id='"_id_"' class='"_class_"'>"_txt_"</span>"
+
+ q
+ ;
+aSP(revTrops,wordIdx,partIdx,direction,dots,syntax,level,startWord,endWord,chap,verse,startPart,endPart,mismatchLevel,mismatchStart,mismatchEnd,mismatchCnt)	; add left/right paren., and syntax just next to left paren (on last word in section)
+ ; leaves and syntax are (somewhat) independent: leaves never need ( ), syntax always does.
+ n cnt,dottxt,id,class
+ s partIdx=$g(partIdx)
+ i partIdx="" s partIdx=$s(direction="L":1000,direction="R":0,1:"") ; use 0 or 1000 if not specified to make it the last one
+ s syntax=$g(syntax)
+ s dottxt="" i $g(dots) s dottxt="..."
+ s id="syntax-"_chap_"-"_verse_"-"_mismatchCnt_"-"_level_"-"_startWord_"-"_endWord_"-"_startPart_"-"_endPart_"-"_direction
+ s class = $s(direction="L":"branch-end syntax-level-"_level,direction="R":"branch-start syntax-level-"_level,1:"syntax-part")
+ i (direction="L"!(direction="R")) & (level=mismatchLevel) & (startWord=mismatchStart) & (endWord=mismatchEnd) s class = class_" mismatch-pair"
+ ; Outer class for the wrapper span
+ s outerClass="syntax-group syntax-level-"_level
+ i (level=mismatchLevel) & (startWord=mismatchStart) & (endWord=mismatchEnd) s outerClass=outerClass_" mismatch-pair"
+ i direction=0 d
+ . s (cnt,revSyn(wordIdx,partIdx,0,0))=$g(revSyn(wordIdx,partIdx,0,0))+1
+ . s revSyn(wordIdx,partIdx,0,cnt)="<span class='syntax-part'>"_syntax_"</span>"
+ i direction="L" d
+ . s leftHtml="<span id='"_id_"' class='"_class_"'>("_dottxt_syntax_"</span>"
+ . s (cnt,revSyn(wordIdx,partIdx,"L",0)) = $g(revSyn(wordIdx,partIdx,"L",0))+1
+ . s revSyn(wordIdx,partIdx,"L",cnt)="<span class='"_outerClass_"'>"_leftHtml_"</span>"
+ i direction="R" d
+ . s (cnt,revSyn(wordIdx,partIdx,"R",0))=$g(revSyn(wordIdx,partIdx,"R",0))+1
+ . s revSyn(wordIdx,partIdx,"R",cnt) = "<span id='"_id_"' class='"_class_"'>"_dottxt_")</span>"
+ q
+ ;
+add(x)	;
+	n cnt,glb1
+	s glb1="^TMP("_$j_",""out"")"
+	s (cnt,@glb1@(0))=$g(@glb1@(0))+1
+	s @glb1@(cnt)=x
+	q
+	;
+includeFile(filename) ;
+ n file,i,inary,subpath
+ s subpath="QR\QRCode\out\includes\"
+ d readin1 ; loads inary array
+ f i=1:1 q:'$d(inary(i))  d
+ . d add(inary(i))
+ q
+readin1 ; Read single file
+ k inary
+ d getfile^mkrutl(filename,.inary,subpath)
+ q
+
+; Your existing aSP, displaySyntaxRow, add, includeFile, etc. remain unchanged
+;
