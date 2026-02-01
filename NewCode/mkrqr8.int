@@ -1,8 +1,8 @@
 mkrqr8	; mkr 08/01/2025; kriah (קריה), trop (טעמים), and syntax - comprehensive verse output with selectable mismatches
 	;
 	;
-generateAllVerses ; Generate output for all verses in ^torah2 with optional mismatch highlighting
- n bookName,chars,glb0,glb1,NONLETTERS,sefer,sefarim
+generateAllVerses ; Generate output for all verses in ^torah2 with mismatch highlighting
+ n bookName,chars,glb0,glb1,sefer,sefarim
  ;
  s U="^",P="|",sp=" "
  s glb0="^torah2",glb1="^TMP("_$j_",""out"")"
@@ -10,9 +10,7 @@ generateAllVerses ; Generate output for all verses in ^torah2 with optional mism
  ;
  m chars=^mkr4("chars")
  m sefarim=^mkr4("sefer") ; details about various books of Tanach
- s NONLETTERS="" f i=1425:1:1469,1471:1:1479 s NONLETTERS=NONLETTERS_$c(i) ; all characters that aren't aleph - tav
- ;f bookn=1:1:35 d
- f bookn=1 d  ; DEBUGGING
+ f bookn=1 d  ; DEBUGGING - only first book
  . m sefer=sefarim(bookn)
  . s sefer1=$$zconvert^mkrutl(sefer,"O","UTF8")
  . S bookName=sefarim(bookn,"eng") ; Map bookn to name
@@ -21,7 +19,6 @@ generateAllVerses ; Generate output for all verses in ^torah2 with optional mism
  . d includeFile("footer.html")
  . d writeout^mkrqr1(bookn,glb1,"allVerses"_bookName,"QRCode\out","html") ; output to file
  . d writeout^mkrqr1(bookn,glb1,"preview_allVerses"_bookName,"QRCode\out","html",500) ; output preview to file, 500 rows
- . d add(txt)
  . k @glb1
  q
  ;
@@ -68,12 +65,11 @@ checkMismatch(book,verse,lvl1,wrd1,lvl2,wrd2,wrdpart,mismatches,mismatchCnt) ; c
  . S mismatches(mismatchCnt)=lvl1_"^"_wrd10_"^"_wrd1_"^"_lvl2_"^"_wrd20_"^"_wrd2
  q
  ;
-displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words and optional mismatches
+displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words and mismatches
  ; Inputs: bookn,versen
- ; Output: 4-row monospaced text display, all RTL
+ ; Output: 3-row table display, all RTL
  N posuk,wrds,wrdcnt,i,j,k,level,level0,endWord,partIdx
  N startWord,nodeType,part,trop,minWord,maxWord,prefix,revTrops,revSyn,mismatchIdx
- N lvl1,wrd10,wrd1,lvl2,wrd20,wrd2
  ;
  M posuk=^torah2(bookn,versen) ; all verse info
  ; Get verse data
@@ -82,52 +78,38 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  ; Set minWord and maxWord to cover the entire verse
  S minWord=1,maxWord=wrdcnt
  ;
- ; Prepare trops and syntax for the range,
- ;  adding brackets for the sections and sub-sections
- ;
+ ; Prepare trops and syntax for the range
  F i=minWord:1:maxWord D
  . ; Trops - build list
  . S trop=$$getTaam(.posuk,i)
  . S revTrops(i)=trop
  ;
- ; Initialize mismatch variables to avoid UNDEF errors when no mismatches exist
- S lvl1="",wrd10=0,wrd1=0,lvl2="",wrd20=0,wrd2=0
- ;
- F level=4:-1:1 D ; sections begin and end, enclose in ( )
+ ; Add trop brackets
+ F level=4:-1:1 D
  . s endWord="" f  s endWord=$o(posuk("lvls",level,endWord)) q:endWord=""  D
- .. S startWord=posuk("lvls",level,endWord) ; initial word beginning the section
- ..; these might be inside or outside our range
- .. Q:startWord>maxWord  Q:endWord<minWord  ; totally off the radar
- .. I startWord<minWord Q:((level+1)<lvl1)  d  ; add parens on first and last word of section
- ... d aTP(.revTrops,minWord,"R",1,level,startWord,endWord,chap,verse,lvl1,wrd10,wrd1,mismatchCnt)
- .. E  d aTP(.revTrops,startWord,"R",,level,startWord,endWord,chap,verse,lvl1,wrd10,wrd1,mismatchCnt)
- .. I endWord>maxWord Q:((level+1)<lvl1)  d
- ... d aTP(.revTrops,maxWord,"L",1,level,startWord,endWord,chap,verse,lvl1,wrd10,wrd1,mismatchCnt)
- .. E  d aTP(.revTrops,endWord,"L",,level,startWord,endWord,chap,verse,lvl1,wrd10,wrd1,mismatchCnt)
+ .. S startWord=posuk("lvls",level,endWord)
+ .. Q:startWord>maxWord  Q:endWord<minWord
+ .. I startWord<minWord d aTP(.revTrops,minWord,"R",1,level,startWord,endWord,chap,verse,0,0,0,0)
+ .. E  d aTP(.revTrops,startWord,"R",,level,startWord,endWord,chap,verse,0,0,0,0)
+ .. I endWord>maxWord d aTP(.revTrops,maxWord,"L",1,level,startWord,endWord,chap,verse,0,0,0,0)
+ .. E  d aTP(.revTrops,endWord,"L",,level,startWord,endWord,chap,verse,0,0,0,0)
  ;
  ; Syntax - build list
- S level0=$o(posuk("fslvls",""),-1) ; deepest level reached
- F level=level0:-1:1 D ; sections begin and end, enclose in ( )
+ S level0=$o(posuk("fslvls",""),-1)
+ F level=level0:-1:1 D
  . s endWord="" f  s endWord=$o(posuk("fslvls",level,endWord)) q:endWord=""  D
- .. Q:endWord<minWord  ; totally off the radar
+ .. Q:endWord<minWord
  .. s endPart="" f  s endPart=$o(posuk("fslvls",level,endWord,endPart)) q:endPart=""  D
  ... S node=posuk("fslvls",level,endWord,endPart)
- ... S startWord=$p(node,U),startPart=$p(node,U,2) ; initial word,part beginning the section
- ... Q:startWord>maxWord   ; totally off the radar
- ... S syntax=$P(node,U,3),txt=$P(node,U,4),leafSyntax=$p(node,U,5)
- ... I syntax="" D  Q  ; don't add parens just for a leaf alone
- ....; for leaf, startWord=endWord,startPart=endPart
- .... i startWord'=endWord W !,"error startWord "_startWord_", endword "_endWord q
- .... i startPart'=endPart W !,"error startPart "_startPart_", endword "_endPart q
- .... d aSP(.revSyn,startWord,startPart,0,,leafSyntax,level,startWord,endWord,chap,verse,startPart,startPart,lvl2,wrd20,wrd2,mismatchCnt)
- ... Q:((level+1)<lvl1)  ; don't need to look that far out
- ... ; add parens on first and last word of section, and syntax
- ... I startWord<minWord d  ; add ...
- .... d aSP(.revSyn,minWord,,"R",1,,level,startWord,endWord,chap,verse,startPart,endPart,lvl2,wrd20,wrd2,mismatchCnt)
- ... E  d aSP(.revSyn,startWord,startPart,"R",,,level,startWord,endWord,chap,verse,startPart,endPart,lvl2,wrd20,wrd2,mismatchCnt)
- ... I endWord>maxWord d
- .... d aSP(.revSyn,maxWord,,"L",1,syntax,level,startWord,endWord,chap,verse,startPart,endPart,lvl2,wrd20,wrd2,mismatchCnt)
- ... E  d aSP(.revSyn,endWord,endPart,"L",,syntax,level,startWord,endWord,chap,verse,startPart,endPart,lvl2,wrd20,wrd2,mismatchCnt)
+ ... S startWord=$p(node,U),startPart=$p(node,U,2)
+ ... Q:startWord>maxWord
+ ... S syntax=$P(node,U,3),leafSyntax=$p(node,U,5)
+ ... I syntax="" D  Q
+ .... d aSP(.revSyn,startWord,startPart,0,,leafSyntax,level,startWord,endWord,chap,verse,startPart,startPart,0,0,0,0)
+ ... I startWord<minWord d aSP(.revSyn,minWord,,"R",1,,level,startWord,endWord,chap,verse,startPart,endPart,0,0,0,0)
+ ... E  d aSP(.revSyn,startWord,startPart,"R",,,level,startWord,endWord,chap,verse,startPart,endPart,0,0,0,0)
+ ... I endWord>maxWord d aSP(.revSyn,maxWord,,"L",1,syntax,level,startWord,endWord,chap,verse,startPart,endPart,0,0,0,0)
+ ... E  d aSP(.revSyn,endWord,endPart,"L",,syntax,level,startWord,endWord,chap,verse,startPart,endPart,0,0,0,0)
  ;
  d add("<div class='verse-container' data-chap='"_chap_"' data-verse='"_verse_"'>")
  s txt="B'reishis "_chap_":"_verse_" "_$$zconvert^mkrutl(wrds,"O","UTF8")
@@ -163,22 +145,9 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  .. d add($$zconvert^mkrutl(txt,"O","UTF8"))
  ;
  d add("<div class='table-container'>")
- ; Determine how many words per segment dynamically based on total words and syntax complexity
- ; Aim for segments of around 10 words, but reduce if there are many syntax elements per word
+ ; Segment the verse into manageable tables
  S totalWords=maxWord-minWord+1
- ; Calculate complexity based on number of syntax elements
- S complexity=0
- F i=minWord:1:maxWord D
- . S j="" F  S j=$o(revSyn(i,j)) q:j=""  D
- .. F k="L",0,"R" I $D(revSyn(i,j,k)) D
- ... S cnt=$G(revSyn(i,j,k,0),0)
- ... S complexity=complexity+cnt
- ; Adjust segment size based on total words and complexity
- S avgComplexityPerWord=$S(totalWords>0:complexity/totalWords,1:1)
  S segmentSize=$S(totalWords>30:15,totalWords>15:10,1:8)
- I avgComplexityPerWord>2 S segmentSize=$S(segmentSize>10:segmentSize-2,1:segmentSize-1)
- I avgComplexityPerWord>4 S segmentSize=$S(segmentSize>8:segmentSize-2,1:segmentSize-1)
- S segmentSize=$S(segmentSize<5:5,1:segmentSize) ; Ensure minimum segment size
  S currentWord=minWord
  S segmentCount=0
  F  Q:currentWord>maxWord  D
@@ -191,7 +160,7 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  . d add("<tr class='word-row'>")
  . s rowWords=""
  . F i=segmentStart:-1:segmentEnd D
- .. S word=posuk(i) ; number of characters
+ .. S word=posuk(i)
  .. S class=""
  .. i mismatchCnt>0 d
  ... f mismatchIdx=1:1:mismatchCnt d
@@ -204,37 +173,26 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  . d add($$zconvert^mkrutl(rowWords,"O","UTF8"))
  . d add("</tr>")
  . 
- . ; Row 2: trops - build right-to-left to match word order
+ . ; Row 2: Trops
  . d add("<tr class='trop-row'>")
- . s rowTrops="" ; build string right-to-left
+ . s rowTrops=""
  . F i=segmentStart:-1:segmentEnd D
- .. S tropL=$g(revTrops(i,"L")),trop=$g(revTrops(i)),tropR=$g(revTrops(i,"R")),tropClass="trop-group"
- .. i mismatchCnt>0 d
- ... f mismatchIdx=1:1:mismatchCnt d
- .... s mismatchData=mismatches(mismatchIdx)
- .... s wrd10=$p(mismatchData,"^",2),wrd1=$p(mismatchData,"^",3)
- .... i i>=wrd10,i<=wrd1 s tropClass=tropClass_" mismatch-trop-"_mismatchIdx
+ .. S tropL=$g(revTrops(i,"L")),trop=$g(revTrops(i)),tropR=$g(revTrops(i,"R"))
  .. S rowTrops = rowTrops _ "<td>"_$s(tropL'="":tropL,1:trop)_tropR_"</td>"
  . d add(rowTrops)
  . d add("</tr>")
  . 
  . ; Row 3: Syntax
  . d add("<tr class='syntax-row'>")
- . F i=segmentStart:-1:segmentEnd D  ; leaf syntax
+ . F i=segmentStart:-1:segmentEnd D
  .. d add("<td>")
- .. S j="" F  S j=$o(revSyn(i,j),-1) q:j=""  d  ; word-part
+ .. S j="" F  S j=$o(revSyn(i,j),-1) q:j=""  d
  ... S partTxt=""
- ... F k="L",0,"R" i $d(revSyn(i,j,k)) d  ; leaf or syntax branch ends
- .... S class=$s(k=0:"syntax-part",k="L":"branch-end",k="R":"branch-start",1:"")
- .... i mismatchCnt>0,k'="R",k'="L" d
- ..... f mismatchIdx=1:1:mismatchCnt d
- ...... s mismatchData=mismatches(mismatchIdx)
- ...... s wrd20=$p(mismatchData,"^",5),wrd2=$p(mismatchData,"^",6)
- ...... i i>=wrd20,i<=wrd2 s class=class_" mismatch-syntax-"_mismatchIdx
- .... I k="L" F cnt=$g(revSyn(i,j,k,0)):-1:1 d  ; maybe several on one part, esp. ('s
+ ... F k="L",0,"R" i $d(revSyn(i,j,k)) d
+ .... I k="L" F cnt=$g(revSyn(i,j,k,0)):-1:1 d
  ..... S part=revSyn(i,j,k,cnt)
  ..... S partTxt=partTxt_part
- .... E  F cnt=1:1:$g(revSyn(i,j,k,0)) d  ; maybe several on one part, esp. ('s
+ .... E  F cnt=1:1:$g(revSyn(i,j,k,0)) d
  ..... S part=revSyn(i,j,k,cnt)
  ..... S partTxt=partTxt_part
  ... d add(partTxt)
