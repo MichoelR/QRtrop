@@ -20,19 +20,7 @@ generateAllVerses ; Generate output for all verses in ^torah2 with optional mism
  . f versen=1:1 q:'$d(^torah2(bookn,versen))  d generateVerseOutput(bookn,versen)
  . d includeFile("footer.html")
  . d writeout^mkrqr1(bookn,glb1,"allVerses"_bookName,"QRCode\out","html") ; output to file
- . ; Add inline script to trigger highlighting for all verses with mismatches on page load
- . s txt="<script>"
- . s txt=txt_"document.addEventListener('DOMContentLoaded', function() {"
- . s txt=txt_"  const containers = document.querySelectorAll('.verse-container');"
- . s txt=txt_"  containers.forEach(container => {"
- . s txt=txt_"    const chap = container.getAttribute('data-chap');"
- . s txt=txt_"    const verse = container.getAttribute('data-verse');"
- . s txt=txt_"    if (container.querySelector('input[type=""radio""][name=""mismatch-select-' + chap + '-' + verse + '""]')) {"
- . s txt=txt_"      highlightWordRange(null, chap, verse);"
- . s txt=txt_"    }"
- . s txt=txt_"  });"
- . s txt=txt_"});"
- . s txt=txt_"</script>"
+ . d writeout^mkrqr1(bookn,glb1,"preview_allVerses"_bookName,"QRCode\out","html",500) ; output preview to file, 500 rows
  . d add(txt)
  . k @glb1
  q
@@ -152,9 +140,9 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  .. s lvl2=$p(mismatchData,"^",4),wrd20=$p(mismatchData,"^",5),wrd2=$p(mismatchData,"^",6)
  .. s txt="<div class='mismatch-selector'>"
  .. s txt=txt_"<div class='mismatch-data mismatch-1'>Mismatch: Trop branch (level "_lvl1_") words "_wrd10_" - "_wrd1_", "
- .. s txt=txt_"<span class='verse-trop' data-words='"_wrd10_"-"_wrd1_"' onclick='highlightMismatch(this, ""trop"", "_chap_", "_verse_")'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
+ .. s txt=txt_"<span class='verse-trop' data-words='"_wrd10_"-"_wrd1_"'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
  .. s txt=txt_". Syntax branch (level "_lvl2_") words "_wrd20_" - "_wrd2_", "
- .. s txt=txt_"<span class='verse-syntax' data-words='"_wrd20_"-"_wrd2_"' onclick='highlightMismatch(this, ""syntax"", "_chap_", "_verse_")'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</div>"
+ .. s txt=txt_"<span class='verse-syntax' data-words='"_wrd20_"-"_wrd2_"'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</div>"
  .. s txt=txt_"</div>"
  .. d add($$zconvert^mkrutl(txt,"O","UTF8"))
  . e  d
@@ -166,9 +154,9 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  ... s checked=$s(mismatchIdx=1:" checked",1:"")
  ... s txt=txt_"<div class='mismatch-data mismatch-"_mismatchIdx_"'>"
  ... s txt=txt_"<span class='mismatch-label'>Mismatch "_mismatchIdx_": Trop branch (level "_lvl1_") words "_wrd10_" - "_wrd1_", "
- ... s txt=txt_"<span class='verse-trop' data-words='"_wrd10_"-"_wrd1_"' onclick='highlightMismatch(this, ""trop"", "_chap_", "_verse_")'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
+ ... s txt=txt_"<span class='verse-trop' data-words='"_wrd10_"-"_wrd1_"'>"_$p(wrds,sp,wrd10)_" - "_$p(wrds,sp,wrd1)_"</span>"
  ... s txt=txt_". Syntax branch (level "_lvl2_") words "_wrd20_" - "_wrd2_", "
- ... s txt=txt_"<span class='verse-syntax' data-words='"_wrd20_"-"_wrd2_"' onclick='highlightMismatch(this, ""syntax"", "_chap_", "_verse_")'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</span>"
+ ... s txt=txt_"<span class='verse-syntax' data-words='"_wrd20_"-"_wrd2_"'>"_$p(wrds,sp,wrd20)_" - "_$p(wrds,sp,wrd2)_"</span>.</span>"
  ... s txt=txt_"<input type='radio' name='mismatch-select-"_chap_"-"_verse_"' id='mismatch-"_mismatchIdx_"-"_chap_"-"_verse_"' value='"_mismatchIdx_"' data-trop='"_wrd10_"-"_wrd1_"' data-syntax='"_wrd20_"-"_wrd2_"' "_checked_" style='margin-left: 10px;'>"
  ... s txt=txt_"</div>"
  .. s txt=txt_"</div>"
@@ -200,7 +188,7 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  . d add("<table class='segment-table' data-segment='"_segmentCount_"'>")
  . 
  . ; Row 1: Words
- . d add("<tr>")
+ . d add("<tr class='word-row'>")
  . s rowWords=""
  . F i=segmentStart:-1:segmentEnd D
  .. S word=posuk(i) ; number of characters
@@ -212,26 +200,26 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  .... s wrd20=$p(mismatchData,"^",5),wrd2=$p(mismatchData,"^",6)
  .... i i>=wrd10,i<=wrd1 s class=$s(class="": "", 1: class_",")_"trop-mismatch-"_mismatchIdx
  .... i i>=wrd20,i<=wrd2 s class=$s(class="": "", 1: class_",")_"syntax-mismatch-"_mismatchIdx
- .. S rowWords = rowWords _ "<td data-word='"_i_"' class='"_class_"' onclick='highlightWordRange(this, "_chap_", "_verse_")'>"_word_"</td>"
+ .. S rowWords = rowWords _ "<td data-word='"_i_"' class='"_class_"'>"_word_"</td>"
  . d add($$zconvert^mkrutl(rowWords,"O","UTF8"))
  . d add("</tr>")
  . 
  . ; Row 2: trops - build right-to-left to match word order
- . d add("<tr>")
+ . d add("<tr class='trop-row'>")
  . s rowTrops="" ; build string right-to-left
  . F i=segmentStart:-1:segmentEnd D
- .. S tropL=$g(revTrops(i,"L")),trop=$g(revTrops(i)),tropR=$g(revTrops(i,"R")),tropClass="verse-trop"
+ .. S tropL=$g(revTrops(i,"L")),trop=$g(revTrops(i)),tropR=$g(revTrops(i,"R")),tropClass="trop-group"
  .. i mismatchCnt>0 d
  ... f mismatchIdx=1:1:mismatchCnt d
  .... s mismatchData=mismatches(mismatchIdx)
  .... s wrd10=$p(mismatchData,"^",2),wrd1=$p(mismatchData,"^",3)
  .... i i>=wrd10,i<=wrd1 s tropClass=tropClass_" mismatch-trop-"_mismatchIdx
- .. S rowTrops = rowTrops _ "<td><span class='"_tropClass_"'>"_tropL_$zstrip(trop,"<W")_tropR_"</span></td>"
+ .. S rowTrops = rowTrops _ "<td>"_$s(tropL'="":tropL,1:trop)_tropR_"</td>"
  . d add(rowTrops)
  . d add("</tr>")
  . 
  . ; Row 3: Syntax
- . d add("<tr>")
+ . d add("<tr class='syntax-row'>")
  . F i=segmentStart:-1:segmentEnd D  ; leaf syntax
  .. d add("<td>")
  .. S j="" F  S j=$o(revSyn(i,j),-1) q:j=""  d  ; word-part
@@ -255,7 +243,6 @@ displayVerse(bookn,versen,mismatches,mismatchCnt) ; Display verse with all words
  . d add("</table>")
  . S currentWord=segmentStart+1
  d add("</div>") ; end table-container
- ; Removed the mismatch-info section as it's now handled above with radio buttons
  d add("</div>") ; end verse-container
  d add("<br />")
  q
@@ -269,19 +256,27 @@ getTaam(posuk,i) ; for ith word
  . s taam1=chars(unicode,"name"),taam=taam_$s(taam="":"",1:" ")_taam1
  q taam
  ;
-aTP(revTrops,wordIdx,direction,dots,level,startWord,endWord,chap,verse,mismatchLevel,mismatchStart,mismatchEnd,mismatchCnt)	; add left/right paren. revTrops array in/out by reference
- n dottxt,txt1,id,class
+aTP(revTrops,wordIdx,direction,dots,level,startWord,endWord,chap,verse,mismatchLevel,mismatchStart,mismatchEnd,mismatchCnt)
+ ; Add left/right paren for trop — paren + mafsik text in ONE span (no inner span)
+ n dottxt,id,class,txt
  s dottxt="" i $g(dots) s dottxt="..."
  s id="trop-"_chap_"-"_verse_"-"_mismatchCnt_"-"_level_"-"_startWord_"-"_endWord_"-"_direction
- s class = $s(direction="L":"branch-end",direction="R":"branch-start",1:"")_" trop-level-"_level
- i (level=mismatchLevel) & (startWord=mismatchStart) & (endWord=mismatchEnd) s class = class_" mismatch-pair"
- i direction="L" s revTrops(wordIdx,"L") = "<span id='"_id_"' class='"_class_"'>("_dottxt_"</span>"_$g(revTrops(wordIdx,"L"))
- i direction="R" s revTrops(wordIdx,"R") = $g(revTrops(wordIdx,"R"))_"<span id='"_id_"' class='"_class_"'>"_dottxt_")</span>"
+ s class=$s(direction="L":"branch-end",direction="R":"branch-start",1:"")_" trop-level-"_level
+ i (level=mismatchLevel) & (startWord=mismatchStart) & (endWord=mismatchEnd) s class=class_" mismatch-pair"
+ ; Left: paren + mafsik text inside the branch-end span
+ i direction="L" d
+ . s txt="("_dottxt_$g(revTrops(wordIdx))  ; mafsik text INSIDE
+ . s revTrops(wordIdx,"L")="<span id='"_id_"' class='"_class_"'>"_txt_"</span>"
+ ; Right: closing paren in its own span
+ i direction="R" d
+ . s txt=dottxt_")"
+ . s revTrops(wordIdx,"R")=$g(revTrops(wordIdx,"R"))_"<span id='"_id_"' class='"_class_"'>"_txt_"</span>"
  q
+ ;
  ;
 aSP(revTrops,wordIdx,partIdx,direction,dots,syntax,level,startWord,endWord,chap,verse,startPart,endPart,mismatchLevel,mismatchStart,mismatchEnd,mismatchCnt)	; add left/right paren., and syntax just next to left paren (on last word in section)
  ; leaves and syntax are (somewhat) independent: leaves never need ( ), syntax always does.
- n cnt,dottxt,txt1,id,class
+ n cnt,dottxt,id,class
  s partIdx=$g(partIdx)
  i partIdx="" s partIdx=$s(direction="L":1000,direction="R":0,1:"") ; use 0 or 1000 if not specified to make it the last one
  s syntax=$g(syntax)
@@ -289,9 +284,16 @@ aSP(revTrops,wordIdx,partIdx,direction,dots,syntax,level,startWord,endWord,chap,
  s id="syntax-"_chap_"-"_verse_"-"_mismatchCnt_"-"_level_"-"_startWord_"-"_endWord_"-"_startPart_"-"_endPart_"-"_direction
  s class = $s(direction="L":"branch-end syntax-level-"_level,direction="R":"branch-start syntax-level-"_level,1:"syntax-part")
  i (direction="L"!(direction="R")) & (level=mismatchLevel) & (startWord=mismatchStart) & (endWord=mismatchEnd) s class = class_" mismatch-pair"
- i direction=0 s (cnt,revSyn(wordIdx,partIdx,0,0))=$g(revSyn(wordIdx,partIdx,0,0))+1,revSyn(wordIdx,partIdx,0,cnt)="<span class='syntax-part'>"_syntax_"</span>"
- i direction="L" s (cnt,revSyn(wordIdx,partIdx,"L",0)) = $g(revSyn(wordIdx,partIdx,"L",0))+1,revSyn(wordIdx,partIdx,"L",cnt)="<span id='"_id_"' class='"_class_"'>("_dottxt_syntax_"</span>"
- i direction="R" s (cnt,revSyn(wordIdx,partIdx,"R",0))=$g(revSyn(wordIdx,partIdx,"R",0))+1,revSyn(wordIdx,partIdx,"R",cnt) = "<span id='"_id_"' class='"_class_"'>"_dottxt_")</span>"
+ i (level=mismatchLevel) & (startWord=mismatchStart) & (endWord=mismatchEnd) s outerClass=outerClass_" mismatch-pair"
+ i direction=0 d
+ . s (cnt,revSyn(wordIdx,partIdx,0,0))=$g(revSyn(wordIdx,partIdx,0,0))+1
+ . s revSyn(wordIdx,partIdx,0,cnt)="<span class='syntax-part'>"_syntax_"</span>"
+ i direction="L" d
+ . s (cnt,revSyn(wordIdx,partIdx,"L",0)) = $g(revSyn(wordIdx,partIdx,"L",0))+1
+ . s revSyn(wordIdx,partIdx,"L",cnt)="<span id='"_id_"' class='"_class_"'>("_dottxt_syntax_"</span>"
+ i direction="R" d
+ . s (cnt,revSyn(wordIdx,partIdx,"R",0))=$g(revSyn(wordIdx,partIdx,"R",0))+1
+ . s revSyn(wordIdx,partIdx,"R",cnt) = "<span id='"_id_"' class='"_class_"'>"_dottxt_")</span>"
  q
  ;
 add(x)	;
